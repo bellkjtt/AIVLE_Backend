@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, redirect, resolve_url
-
+from .models import *
 # Create your views here.
 
 
@@ -50,13 +50,18 @@ def voice_stt(request):
     # 복호화된 Text 파일 Return
     # return HttpResponse(data['return_object']['recognized'])
 
-    return redirect(resolve_url('stt:analyze_sentence', data['return_object']['recognized']))
+    # 대화 기록 Model에 저장
+    chat_log = Chat_log()
+    chat_log.message = data['return_object']['recognized']
+    chat_log.save()
+    
+    return redirect(resolve_url('stt:analyze_sentence'))
     
     
     
     
 # Text 분석 질의 API를 활용하여 대화에서 필요한 정보 추출 (신고 장소, 인원, 인상착의 .... )
-def analyze_sentence(request, data):
+def analyze_sentence(request):
     
     import urllib3
     import json
@@ -64,10 +69,11 @@ def analyze_sentence(request, data):
     openApiURL = "http://aiopen.etri.re.kr:8000/MRCServlet"                     # 문장 분석 API 주소
     apiKey = "d6dec6aa-41bf-48c4-9b3a-acbd97a70b3e"                             # API 키
     
+    
     # 대화 기록
-    talkLog = data
+    chat_log = Chat_log.objects.all()
+    talkLog = str(chat_log.last())
     # talkLog = "분당 KT 앞 빽다방에 불났어요"
-    print(talkLog)
 
     # 질의
     question = "불난 장소가 어디에요?"                                          # 장소 추정
