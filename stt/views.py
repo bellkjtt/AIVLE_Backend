@@ -48,6 +48,55 @@ def voice_stt(request):
     print(data['return_object']['recognized'])
     
     # 복호화된 Text 파일 Return
-    return HttpResponse(data['return_object']['recognized'])
+    # return HttpResponse(data['return_object']['recognized'])
 
-    # return redirect(resolve_url('stt:analyze_sentence', data['return_object']['recognized']))
+    return redirect(resolve_url('stt:analyze_sentence', data['return_object']['recognized']))
+    
+    
+    
+    
+# Text 분석 질의 API를 활용하여 대화에서 필요한 정보 추출 (신고 장소, 인원, 인상착의 .... )
+def analyze_sentence(request, data):
+    
+    import urllib3
+    import json
+    
+    openApiURL = "http://aiopen.etri.re.kr:8000/MRCServlet"                     # 문장 분석 API 주소
+    apiKey = "d6dec6aa-41bf-48c4-9b3a-acbd97a70b3e"                             # API 키
+    
+    # 대화 기록
+    talkLog = data
+    # talkLog = "분당 KT 앞 빽다방에 불났어요"
+    print(talkLog)
+
+    # 질의
+    question = "불난 장소가 어디에요?"                                          # 장소 추정
+    
+    
+    # 요청 형식 (질의, 대화 기록)
+    requestJson = {
+        "argument": {
+            "question": question,
+            "passage": talkLog
+        }
+    }
+    
+    # HttpRequest 요청 (응답)
+    http = urllib3.PoolManager()
+    response = http.request(
+        "POST",
+        openApiURL,
+        headers={"Content-Type": "application/json; charset=UTF-8","Authorization": apiKey},
+        body=json.dumps(requestJson)
+    )
+    
+    # 응답 코드 확인    
+    print("[responseCode] " + str(response.status))
+    print("[responBody]")
+    print(str(response.data,"utf-8"))
+    
+    # GPT 응답 Text 복호화
+    data = json.loads(response.data.decode("utf-8", errors='ignore'))
+
+    # GPT 응답 Text Return
+    return HttpResponse(data['return_object']['MRCInfo']['answer']) 
