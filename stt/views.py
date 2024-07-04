@@ -48,14 +48,14 @@ def voice_stt(request):
     print(data['return_object']['recognized'])
     
     # 복호화된 Text 파일 Return
-    # return HttpResponse(data['return_object']['recognized'])
+    return data['return_object']['recognized']
 
-    # 대화 기록 Model에 저장
-    chat_log = Chat_log()
-    chat_log.message = data['return_object']['recognized']
-    chat_log.save()
+    # # 대화 기록 Model에 저장
+    # chat_log = Chat_log()
+    # chat_log.message = data['return_object']['recognized']
+    # chat_log.save()
     
-    return redirect(resolve_url('stt:analyze_sentence'))
+    # return redirect(resolve_url('stt:analyze_sentence'))
     
     
     
