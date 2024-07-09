@@ -1,9 +1,10 @@
-#socketio_server/server.py
+# socketio_server/server.py
 
 import socketio
 import eventlet
 import os
 from datetime import datetime
+import requests
 
 # Socket.IO 서버 인스턴스 생성 및 모든 도메인에서의 CORS 허용
 sio = socketio.Server(cors_allowed_origins='*')
@@ -36,9 +37,28 @@ def audio_data(sid, data):
     # 파일 저장
     with open(file_path, 'wb') as f:
         f.write(data)
+    print("파일 저장 완료:", file_path)
 
-    # 파일 전송 완료 메시지를 클라이언트로 전송
-    sio.emit('audio_text', '전송됨', to=sid)
+    # 장고 STT 뷰 호출
+    with open(file_path, 'rb') as fp:
+        files = {'audio_file': fp}
+        print("view 호출")
+        try:
+            response = requests.post('http://127.0.0.1:8000/speech_to_text/', files=files)
+        except Exception as e:
+            print("Django 뷰 호출 중 예외 발생:", str(e))
+            sio.emit('audio_text', 'Django 뷰 호출 실패', to=sid)
+            return
+
+    print(response.content)    
+    
+    if response.status_code == 200:
+        response_data = response.json().get('recognized_text', 'No text recognized')
+    else:
+        response_data = 'Django 뷰 호출 실패'
+    
+    print("응답 데이터:", response_data)
+    sio.emit('audio_text', response_data, to=sid)
 
 # Socket.IO 서버 실행
 if __name__ == '__main__':

@@ -2,12 +2,10 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-
-# 기본 라우터 객체 생성
-router = DefaultRouter()
+from stt import views  
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    # stt view 연결
+    path('speech_to_text/', views.speech_to_text, name='speech_to_text'),  
 ]
