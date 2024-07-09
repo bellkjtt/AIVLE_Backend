@@ -38,8 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "stt",
-    "channels", # ASGI 설정
-    'rest_framework',
+    'corsheaders', # CORS 헤더 설정
 ]
 
 MIDDLEWARE = [
@@ -50,6 +49,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware', # CORS 헤더 설정
+    
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -127,3 +128,5 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 ASGI_APPLICATION = 'config.asgi.application' # ASGI 설정
+
+CORS_ORIGIN_ALLOW_ALL = True # CORS 헤더 설정
