@@ -1,3 +1,7 @@
 .venv312
 
 __pycache__
+
+db.sqlite3
+is_wav.py
+socketio_server/uploads/
