@@ -15,6 +15,8 @@ import os
 import json
 from django.core.exceptions import ImproperlyConfigured
 
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -149,3 +151,17 @@ def get_secret(setting, secrets=secrets):
 
 # SECRET_KEY 값
 SECRET_KEY = get_secret("SECRET_KEY")
+
+# SMTP 세팅 추가
+from . import smtp_settings
+
+DATABASES  = smtp_settings.DATABASES
+
+EMAIL_BACKEND       = smtp_settings.EMAIL['EMAIL_BACKEND']
+EMAIL_USE_TLS       = smtp_settings.EMAIL['EMAIL_USE_TLS']      
+EMAIL_PORT          = smtp_settings.EMAIL['EMAIL_PORT']                
+EMAIL_HOST          = smtp_settings.EMAIL['EMAIL_HOST']
+EMAIL_HOST_USER     = smtp_settings.EMAIL['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = smtp_settings.EMAIL['EMAIL_HOST_PASSWORD']
+DEFAULT_FROM_EMAIL  = smtp_settings.EMAIL['DEFAULT_FROM_EMAIL']
+SERVER_EMAIL        = smtp_settings.EMAIL['SERVER_EMAIL']
