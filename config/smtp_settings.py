@@ -19,9 +19,9 @@ EMAIL = {
     'EMAIL_USE_TLS': True,       # TLS 사용 여부 (보안용)
     'EMAIL_PORT': 587,           # SMTP 포트
     'EMAIL_HOST': 'smtp.naver.com',  # Naver SMTP 사용
-    'EMAIL_HOST_USER': 'ysy6700',  # Naver 이메일 계정
-    'EMAIL_HOST_PASSWORD': 'aivle202405!',  # Naver 이메일 계정 비밀번호
-    'DEFAULT_FROM_EMAIL': 'ysy6700@naver.com',  # 기본 발신 이메일 주소
-    'SERVER_EMAIL': 'ysy6700',  # 서버 이메일 주소
+    'EMAIL_HOST_USER': '',  # Naver 이메일 계정
+    'EMAIL_HOST_PASSWORD': '',  # Naver 이메일 계정 비밀번호
+    'DEFAULT_FROM_EMAIL': '',  # 기본 발신 이메일 주소
+    'SERVER_EMAIL': '',  # 서버 이메일 주소
     'REDIRECT_PAGE': 'https://auth.edu.kt.co.kr/'  # 이메일 인증 후 리디렉션할 페이지 URL
 }
