@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import json
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "stt",
     'corsheaders', # CORS 헤더 설정
+    'account',     # 회원 설정
 ]
 
 MIDDLEWARE = [
@@ -130,3 +134,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ASGI_APPLICATION = 'config.asgi.application' # ASGI 설정
 
 CORS_ORIGIN_ALLOW_ALL = True # CORS 헤더 설정
+
+# 보안을 위해 외부에 저장된 secret.json 불러오기
+with open("config/secret.json") as f:
+    secrets = json.loads(f.read())
+
+# Secret 설정값 가져오기
+def get_secret(setting, secrets=secrets):
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = f"Set the {setting} enviroment variable"
+        raise ImproperlyConfigured(error_msg)
+
+# SECRET_KEY 값
+SECRET_KEY = get_secret("SECRET_KEY")
