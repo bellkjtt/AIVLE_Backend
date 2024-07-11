@@ -137,25 +137,26 @@ ASGI_APPLICATION = 'config.asgi.application' # ASGI 설정
 
 CORS_ORIGIN_ALLOW_ALL = True # CORS 헤더 설정
 
-# 보안을 위해 외부에 저장된 secret.json 불러오기
-with open("config/secret.json") as f:
-    secrets = json.loads(f.read())
+# # 보안을 위해 외부에 저장된 secret.json 불러오기
+# with open("config/secret.json") as f:
+#     secrets = json.loads(f.read())
 
-# Secret 설정값 가져오기
-def get_secret(setting, secrets=secrets):
-    try:
-        return secrets[setting]
-    except KeyError:
-        error_msg = f"Set the {setting} enviroment variable"
-        raise ImproperlyConfigured(error_msg)
+# # Secret 설정값 가져오기
+# def get_secret(setting, secrets=secrets):
+#     try:
+#         return secrets[setting]
+#     except KeyError:
+#         error_msg = f"Set the {setting} enviroment variable"
+#         raise ImproperlyConfigured(error_msg)
 
-# SECRET_KEY 값
-SECRET_KEY = get_secret("SECRET_KEY")
+# # SECRET_KEY 값
+# SECRET_KEY = get_secret("SECRET_KEY")
 
 # SMTP 세팅 추가
 from . import smtp_settings
 
 DATABASES  = smtp_settings.DATABASES
+SECRET_KEY = smtp_settings.SECRET_KEY
 
 EMAIL_BACKEND       = smtp_settings.EMAIL['EMAIL_BACKEND']
 EMAIL_USE_TLS       = smtp_settings.EMAIL['EMAIL_USE_TLS']      
