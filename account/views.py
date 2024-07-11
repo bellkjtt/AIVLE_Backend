@@ -16,6 +16,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding           import force_bytes, force_str
+from django.views.decorators.csrf import csrf_exempt
 
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
@@ -32,6 +33,7 @@ class SignUpView(View):
         data = json.loads(request.body)
 
         try:
+            id = data['id']
             email = data['email']
             password = data['password']
             password_confirm = data['password_confirm']
@@ -39,6 +41,10 @@ class SignUpView(View):
 
             # 이메일 형식 유효성 검사
             validate_email(email)
+            
+            # ID 중복 확인
+            if Account.objects.filter(id=id).exists():
+                return JsonResponse({"message": "EXISTS_ID"}, status=400)
 
             # 비밀번호 길이 유효성 검사
             if len(password) < 8:
@@ -54,6 +60,7 @@ class SignUpView(View):
 
             # 계정 생성
             user = Account.objects.create(
+                id=id,
                 name=name,
                 email=email,
                 password=bcrypt.hashpw(password.encode("UTF-8"), bcrypt.gensalt()).decode("UTF-8"),
@@ -92,7 +99,7 @@ class Activate(View):
             user = Account.objects.get(pk=uid) # 사용자 객체 조회
              
             # 토큰 유효성 검사
-            if account_activation_token.check_token(user, token):
+            if account_activation_token.check_token(user, token):   
                 user.is_active = True
                 user.save()
 
@@ -104,3 +111,35 @@ class Activate(View):
             return JsonResponse({"message" : "TYPE_ERROR"}, status=400)
         except KeyError:
             return JsonResponse({"message" : "INVALID_KEY"}, status=400)
+        
+
+# 로그인 뷰 생성
+class SignInView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({'message': f"JSON decode error: {str(e)}"}, status=400)
+
+        try:
+            # 사용자 ID로 로그인
+            if Account.objects.filter(id=data["id"]).exists():
+                user = Account.objects.get(id=data["id"])
+
+                if bcrypt.checkpw(data['password'].encode('UTF-8'), user.password.encode('UTF-8')):
+                    try:
+                        # JWT 토큰 생성
+                        payload = {'user': str(user.id)}
+                        token = jwt.encode(payload, SECRET_KEY['secret'], algorithm=SECRET_KEY['algorithm'])
+                        return JsonResponse({"token": token}, status=200)
+                    except jwt.PyJWTError as e:
+                        return JsonResponse({'message': f"Token generation failed: {str(e)}"}, status=500)
+
+                return JsonResponse({'message': "Invalid password"}, status=401)
+
+            return JsonResponse({'message': "User not found"}, status=400)
+        
+        except KeyError as e:
+            return JsonResponse({'message': f"Missing key: {str(e)}"}, status=400)
+        except Exception as e:
+            return JsonResponse({'message': f"An unexpected error occurred: {str(e)}"}, status=500)
