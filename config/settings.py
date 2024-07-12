@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "stt",
     'corsheaders', # CORS 헤더 설정
     'account',     # 회원 설정
+    'api',
 ]
 
 MIDDLEWARE = [
