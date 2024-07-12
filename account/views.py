@@ -178,19 +178,21 @@ class IDVerifyCodeView(View):
 class PWVerifyCodeView(View):
     def post(self, request):
         data = json.loads(request.body)
+        id = data.get('id')
         email = data.get('email')
         code = data.get('code')
         cred_type = 'pw'
         
-        return verify_code(email, code, cred_type)
+        return verify_code(email, code, cred_type, id)
     
 # 비밀번호 변경
 class ChangePWView(View):
     def post(self, request):
         data = json.loads(request.body)
         id = data['id']
+        email = data['email']
         password = data['password']
         password_confirm = data['password_confirm']
         
-        return change_pw(id, password, password_confirm)
+        return change_pw(id, email, password, password_confirm)
         
