@@ -16,10 +16,10 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding           import force_bytes, force_str
-from django.views.decorators.csrf import csrf_exempt
-
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
+from .utils import *
+
 
 # 회원가입 뷰 생성
 class SignUpView(View):
@@ -99,10 +99,9 @@ class Activate(View):
             user = Account.objects.get(pk=uid) # 사용자 객체 조회
              
             # 토큰 유효성 검사
-            if account_activation_token.check_token(user, token):   
+            if account_activation_token.check_token(user, token):  
                 user.is_active = True
                 user.save()
-
                 return redirect(EMAIL['REDIRECT_PAGE']) # 이메일 인증 완료 후 리디렉션
         
             return JsonResponse({"message" : "AUTH FAIL"}, status=400)
@@ -143,3 +142,55 @@ class SignInView(View):
             return JsonResponse({'message': f"Missing key: {str(e)}"}, status=400)
         except Exception as e:
             return JsonResponse({'message': f"An unexpected error occurred: {str(e)}"}, status=500)
+        
+# 이메일로 아이디 찾기 
+class FindIDView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        mail_title = "아이디 찾기 인증 코드"
+        message_template = "인증 코드는 {code} 입니다."
+        
+        return verify_email(email, mail_title, message_template)
+
+
+class FindPWView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        mail_title = "비밀번호 변경 인증 코드"
+        message_template = "인증 코드는 {code} 입니다."
+        
+        return verify_email(email, mail_title, message_template)
+       
+# 이메일 인증 코드 확인
+class IDVerifyCodeView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        code = data.get('code')
+        cred_type = 'id'
+        
+        return verify_code(email, code, cred_type)
+    
+class PWVerifyCodeView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        code = data.get('code')
+        cred_type = 'pw'
+        
+        return verify_code(email, code, cred_type)
+    
+# 비밀번호 변경
+class ChangePWView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        id = data['id']
+        password = data['password']
+        password_confirm = data['password_confirm']
+        
+        return change_pw(id, password, password_confirm)
+        
