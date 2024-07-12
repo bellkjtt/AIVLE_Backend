@@ -4,5 +4,6 @@ from rag_gpt import views
 app_name = 'rag_gpt'
 
 urlpatterns = [
-    path("", views.analyze_sentence, name='analyze_sentence'),    # 문장 분석 (긴급 구조 신고 상황 판단)
+    path("ETRI/", views.etri_api, name='etri'),    # ETRI 무료 (긴급 구조 신고 상황 판단)
+    path("GPT/", views.gpt_api, name='gpt'),     # GPT 유료 (긴급 구조 신고 상황 판단)
 ]

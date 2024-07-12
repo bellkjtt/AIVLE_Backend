@@ -8,7 +8,7 @@ def get_gpt_response(text):
     # OpenAI API 인스턴스 생성 시 API 키 전달
     client = OpenAI(api_key=api_key)
 
-    text += "\n해당 문자열에서 " + plus + "를 출력해주세요. 모르면 X로 출력해주세요. X일시 X만 출력하고 다른 말은 추가하지 마세요"
+    text += "\n해당 문자열을 분석해서 " + plus + "를 출력해줘. 문자열에 정보가 없는 거는 X로 출력해줘. X일시 X만 출력하고 다른 말은 추가하지 마"
     print(text)
     
     # GPT API에 대화 요청 보내기
@@ -29,7 +29,6 @@ plus = '현재 상황, 사건 발생 장소, 사상자, 신고자, 중증 환장
 
 # GPT API 호출하여 필요한 정보 추출
 message = get_gpt_response(text)
-
 
 
 print(message.content)
