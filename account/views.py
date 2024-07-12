@@ -53,7 +53,10 @@ class SignUpView(View):
             # 비밀번호 재확인 검사
             if password != password_confirm:
                 return JsonResponse({"message": "PASSWORD_MISMATCH"}, status=400)
-
+            
+            if is_valid_password(password):
+                return JsonResponse({"message": "WRONG_FORM"}, status=400)
+            
             # 이메일 중복 확인
             if Account.objects.filter(email=email).exists():
                 return JsonResponse({"message": "EXISTS_EMAIL"}, status=400)
