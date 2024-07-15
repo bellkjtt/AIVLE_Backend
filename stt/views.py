@@ -148,6 +148,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import numpy as np
+from rag_gpt.views import gpt_api
 
 # 네이버 클로바 스피치 API 설정
 client_id = "etu7ckegx5"
@@ -161,7 +162,7 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
 SILENCE_THRESHOLD = 500  # 무음 감지 임계값
-SILENCE_DURATION = 10  # 무음이 일정 시간 이상 지속되면 (초)
+SILENCE_DURATION = 3  # 무음이 일정 시간 이상 지속되면 (초)
 WAVE_OUTPUT_FILENAME = "output.wav"
 FULL_CONVERSATION_FILENAME = "full_conversation.wav"
 
@@ -175,17 +176,18 @@ audio_queue = queue.Queue()
 recording = False
 silence_start = None
 
-def recognize_speech(file_path):
+def recognize_speech():
     headers = {
         "X-NCP-APIGW-API-KEY-ID": client_id,
         "X-NCP-APIGW-API-KEY": client_secret,
         "Content-Type": "application/octet-stream"
     }
-    with open(file_path, 'rb') as data:
+    with open('rb') as data:
         response = requests.post(url, data=data, headers=headers)
     rescode = response.status_code
     if rescode == 200:
         print("Recognized text:", response.json().get('text', 'No text recognized'))
+        return response.json().get('text', 'No text recognized')
     else:
         print("Error:", response.text)
 
