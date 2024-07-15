@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "stt",
     "channels", # ASGI 설정
     'rest_framework',
-    'rag_gpt'
+    'rag_gpt',
     'corsheaders', # CORS 헤더 설정
     'account',     # 회원 설정
     'api',
