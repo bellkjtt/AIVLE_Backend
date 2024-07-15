@@ -1,4 +1,9 @@
 from django.shortcuts import render, HttpResponse
+from .models import *
+
+import requests
+from django.conf import settings
+from django.http import JsonResponse
 
 # Create your views here.
 
@@ -95,59 +100,95 @@ import os
 # GPT API key 가져오기
 api_key = os.getenv("OPENAI_API_KEY")
 
-
-
-
+record = ''
+requirements = ['사건 분류', '사건 발생 장소', '구체적인 현장 상태']
+info = {'사건 분류' : 'X', '사건 발생 장소' : 'X', '구체적인 현장 상태' : 'X'}
 
 def gpt_api(request):
     
+    global record, info
     
-    # 텍스트 입력
-    text = '분당 KT 건너편 빽다방에 불났어요. 총 5명이 다쳤고 1명은 가스 흡입으로 생명이 위독해요. 현재 불이 점점더 커지고 있고 저는 해당 매장 직원이에요.'
-    plus = '현재 상황, 사건 발생 장소, 사상자, 신고자, 중증 환장 여부, 날씨'
-
-
-    # OpenAI API 인스턴스 생성 시 API 키 전달
-    client = OpenAI(api_key=api_key)
-
-    text += "\n해당 문자열에서 " + plus + "를 출력해주세요. 모르면 X로 출력해주세요. X일시 X만 출력하고 다른 말은 추가하지 마세요"
-    print(text)
+    # 신고자 음성 정보 (단발성)
+    sentence = '분당 KT 건너편 빽다방에 불났어요. 총 5명이 다쳤고 1명은 가스 흡입으로 생명이 위독해요. 현재 불이 점점더 커지고 있어요.'
+    # sentence = '불났어요. 총 5명이 다쳤고 1명은 가스 흡입으로 생명이 위독해요. 현재 불이 점점더 커지고 있어요.'
     
-    # GPT API에 대화 요청 보내기
+    # 전체 통화 내용 기록
+    record += sentence
+    
+    # 신고자에게 요청할 필수 정보
+    print(requirements)
+    
+    # OpenAI GPT API 를 활용하여 명령 하달
+    command = record + """위 긴급 구조 신고 전화 내용을 분석하여, '사건 분류', '사건 발생 장소', '구체적인 현장 상태'에 관해 각각 답변해줘.
+                        만약 특정 답변을 생성하기에 정보가 부족하다면, 해당 정보는 X를 답변해줘.
+                        예를들어 '여기 불났어요' 라는 신고가 발생하면, 사건 분류 : 화재, 사건 발생 장소 : X, 구체적인 현장 상태 : X 를 리턴해주면돼."""
+    
+    print(command)
+    
+    # GPT API
+    client = OpenAI(api_key = api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": text}  # 음성 인식으로 변환된 텍스트 입력
-        ]
+            {"role": "user", "content": command}  # 음성 인식으로 변환된 텍스트 입력
+        ],
+        temperature = 0.5,
+        top_p = 0.5,
     )
     
-    # GPT API 호출하여 필요한 정보 추출
-    message = response.choices[0].message
+    # GPT 가 응답한 메시지
+    message = response.choices[0].message.content.split('\n')
+    print(message)
     
-    # API 응답에서 필요한 정보 추출
-    info = {}
-
-    # 대화 분할
-    message = message.content.split('\n')
-
-
-    # 필요한 정보 정제
+    li = []
+    # 필요한 정보 전처리 및 정제
     for ele in message:
+        
         key, value = ele.split(':')
-        key = key.strip()
-        value = value.strip()
+        key, value = key.strip(), value.strip()
+        
         info[key] = value
-
-
-    # 아직 알 수 없는 정보
-    li =[]
-    for key, val in info.items():
-        if val == 'X':
+        
+        if value == 'X':
             li.append(key)
-
-    
+        
+        
     print(info)
-    print('아직 알지 못한 정보 : ', li)
+    print(li)
     
+    if not li:
+        event = EmergencyCalls()
+        event.category = info['사건 분류']
+        event.location = info['사건 발생 장소']
+        event.details = info['구체적인 현장 상태']
+        
+        # event.estimated_address = get_address(info['사건 발생 장소'])  여기를 수정해달라
+        event.save()
+        
     return HttpResponse('ok')
+
+
+
+
+
+def get_address(query):
+    
+    url = "https://dapi.kakao.com/v2/local/search/keyword.json"
+    headers = {
+        "Authorization": f"KakaoAK {settings.KAKAO_API_KEY}"
+    }
+    params = {
+        "query": query
+    }
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        result = response.json()
+        documents = result.get("documents", [])
+        if documents:
+            address_name = documents[0].get("address_name")
+            return address_name
+        else:
+            return None
+    else:
+        return None
