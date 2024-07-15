@@ -36,24 +36,9 @@ class SignUpView(View):
             id = data['id']
             email = data['email']
             password = data['password']
-            password_confirm = data['password_confirm']
             name = data.get('name', '')
 
-            # 이메일 형식 유효성 검사
-            validate_email(email)
-            
-            # ID 중복 확인
-            if Account.objects.filter(id=id).exists():
-                return JsonResponse({"message": "EXISTS_ID"}, status=400)
-
             # 비밀번호 길이 유효성 검사
-            if len(password) < 8:
-                return JsonResponse({"message": "PASSWORD_TOO_SHORT"}, status=400)
-
-            # 비밀번호 재확인 검사
-            if password != password_confirm:
-                return JsonResponse({"message": "PASSWORD_MISMATCH"}, status=400)
-            
             if is_valid_password(password):
                 return JsonResponse({"message": "WRONG_FORM"}, status=400)
             
@@ -71,18 +56,6 @@ class SignUpView(View):
                 is_active=False  # 이메일 인증 전까지 비활성화 상태
             )
 
-            # 이메일 인증 메일 발송
-            current_site = get_current_site(request)                # 요청을 통해 현재 사이트 정보 가져오기
-            domain = current_site.domain                            # 도메인 정보 추출
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))    # 사용자 ID를 base64로 인코딩
-            token = account_activation_token.make_token(user)       # 사용자에 대한 토큰 생성
-            message_data = message(domain, uidb64, token)           # 메세지 생성
-
-            mail_title = "이메일 인증을 완료해주세요"
-            mail_to = email
-            email_message = EmailMessage(mail_title, message_data, to=[mail_to])
-            email_message.send()
-
             return JsonResponse({"message": "SUCCESS"}, status=200)
 
         except KeyError:
@@ -92,28 +65,15 @@ class SignUpView(View):
         except Exception as e:
             return JsonResponse({"message": str(e)}, status=500)
 
-
-# 계정 활성화 뷰
-class Activate(View):
-    # GET 요청에 대한 처리 - 계정 활성화 로직
-    def get(self, request, uidb64, token):
-        try:
-            uid  = force_str(urlsafe_base64_decode(uidb64)) # base64로 인코딩된 사용자 ID 디코딩
-            user = Account.objects.get(pk=uid) # 사용자 객체 조회
-             
-            # 토큰 유효성 검사
-            if account_activation_token.check_token(user, token):  
-                user.is_active = True
-                user.save()
-                return redirect(EMAIL['REDIRECT_PAGE']) # 이메일 인증 완료 후 리디렉션
         
-            return JsonResponse({"message" : "AUTH FAIL"}, status=400)
-
-        except ValidationError:
-            return JsonResponse({"message" : "TYPE_ERROR"}, status=400)
-        except KeyError:
-            return JsonResponse({"message" : "INVALID_KEY"}, status=400)
+# ID 중복 확인
+class IDCheck(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        id = data["id"]
         
+        if Account.objects.filter(id=id).exists():
+            return JsonResponse({"message": "EXISTS_ID"}, status=400)
 
 # 로그인 뷰 생성
 class SignInView(View):
@@ -167,8 +127,30 @@ class FindPWView(View):
         message_template = "인증 코드는 {code} 입니다."
         
         return verify_email(email, mail_title, message_template)
+
+# 회원가입 이메일 인증 코드 전송 
+class SignUpMailView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        
+        mail_title = "회원가입 인증 코드"
+        message_template = "인증 코드는 {code} 입니다."
+        
+        return verify_email(email, mail_title, message_template)
+
+# 회원가입 이메일 인증 코드 확인
+class EMailVerifyCodeView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data.get('email')
+        code = data.get('code')
+        cred_type = 'sign'
+        
+        return verify_code(email, code, cred_type)
+
        
-# 이메일 인증 코드 확인
+# ID 찾기 이메일 인증 코드 확인
 class IDVerifyCodeView(View):
     def post(self, request):
         data = json.loads(request.body)
@@ -178,6 +160,7 @@ class IDVerifyCodeView(View):
         
         return verify_code(email, code, cred_type)
     
+# PW 이메일 인증 코드 확인
 class PWVerifyCodeView(View):
     def post(self, request):
         data = json.loads(request.body)
@@ -199,3 +182,27 @@ class ChangePWView(View):
         
         return change_pw(id, email, password, password_confirm)
         
+        
+        
+        
+        
+# # 계정 활성화 뷰
+# class Activate(View):
+#     # GET 요청에 대한 처리 - 계정 활성화 로직
+#     def get(self, request, uidb64, token):
+#         try:
+#             uid  = force_str(urlsafe_base64_decode(uidb64)) # base64로 인코딩된 사용자 ID 디코딩
+#             user = Account.objects.get(pk=uid) # 사용자 객체 조회
+             
+#             # 토큰 유효성 검사
+#             if account_activation_token.check_token(user, token):  
+#                 user.is_active = True
+#                 user.save()
+#                 return redirect(EMAIL['REDIRECT_PAGE']) # 이메일 인증 완료 후 리디렉션
+        
+#             return JsonResponse({"message" : "AUTH FAIL"}, status=400)
+
+#         except ValidationError:
+#             return JsonResponse({"message" : "TYPE_ERROR"}, status=400)
+#         except KeyError:
+#             return JsonResponse({"message" : "INVALID_KEY"}, status=400)
