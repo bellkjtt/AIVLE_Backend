@@ -71,7 +71,12 @@ def verify_code(email, code, cred_type, id):
                     return JsonResponse({"message": "SUCCESS"}, status=200)
                 except Account.DoesNotExist:
                     return JsonResponse({"valid": False}, status=400)
-                
+            elif cred_type == 'sign':
+                user = Account.objects.get(email=email)
+                user.is_active = True
+                user.save()
+                return JsonResponse({"message": "SUCCESS"}, status=200)
+
         except Account.DoesNotExist:
             return JsonResponse({"message": "EMAIL_NOT_FOUND"}, status=404)
     else:
@@ -96,3 +101,17 @@ def change_pw(id, email, pw, pw_conf):
     user.save()
     
     return JsonResponse({"message":"PASSWORD_CHANGED"}, status = 200)
+
+
+# 이메일 인증 링크
+# current_site = get_current_site(request)                # 요청을 통해 현재 사이트 정보 가져오기
+# domain = current_site.domain                            # 도메인 정보 추출
+# uidb64 = urlsafe_base64_encode(force_bytes(user.pk))    # 사용자 ID를 base64로 인코딩
+# token = account_activation_token.make_token(user)       # 사용자에 대한 토큰 생성
+# message_data = message(domain, uidb64, token)           # 메세지 생성
+
+# mail_title = "이메일 인증을 완료해주세요"
+# mail_to = email
+# email_message = EmailMessage(mail_title, message_data, to=[mail_to])
+# email_message.send()
+

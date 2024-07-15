@@ -12,4 +12,5 @@ urlpatterns = [
     # stt view 연결
     path('account/', include('account.urls')),
     path('api/', include("api.urls")),
+    
 ]
