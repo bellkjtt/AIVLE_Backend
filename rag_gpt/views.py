@@ -97,6 +97,7 @@ def etri_api(request):
 from openai import OpenAI
 import os
 
+from stt.views import recognize_speech
 # GPT API key 가져오기
 api_key = os.getenv("OPENAI_API_KEY")
 
@@ -111,7 +112,7 @@ def gpt_api(request):
     # 신고자 음성 정보 (단발성)
     sentence = '분당 KT 건너편 빽다방에 불났어요. 총 5명이 다쳤고 1명은 가스 흡입으로 생명이 위독해요. 현재 불이 점점더 커지고 있어요.'
     # sentence = '불났어요. 총 5명이 다쳤고 1명은 가스 흡입으로 생명이 위독해요. 현재 불이 점점더 커지고 있어요.'
-    
+    sentence = recognize_speech()
     # 전체 통화 내용 기록
     record += sentence
     
@@ -166,7 +167,7 @@ def gpt_api(request):
         # event.estimated_address = get_address(info['사건 발생 장소'])  여기를 수정해달라
         event.save()
         
-    return HttpResponse('ok')
+    return info
 
 
 
