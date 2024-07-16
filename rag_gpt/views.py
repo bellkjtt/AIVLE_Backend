@@ -4,6 +4,12 @@ from .models import *
 import requests
 from django.conf import settings
 from django.http import JsonResponse
+import json
+import requests
+import pandas as pd
+import numpy as np
+import folium
+from folium.plugins import MiniMap
 
 # Create your views here.
 
@@ -172,24 +178,33 @@ def gpt_api(request):
 
 
 
+# 지도 API 도로명 주소 추정
+def get_address(request):
 
-def get_address(query):
+    # 장소 추정 단어 가져옴
+    data = json.loads(request.body)
+    region= data.get('region')
+
+    url = 'https://dapi.kakao.com/v2/local/search/keyword.json'
+    params = {'query': region,'page': 1}
+    headers = {"Authorization": "KakaoAK API_KEY"}
     
-    url = "https://dapi.kakao.com/v2/local/search/keyword.json"
-    headers = {
-        "Authorization": f"KakaoAK {settings.KAKAO_API_KEY}"
-    }
-    params = {
-        "query": query
-    }
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code == 200:
-        result = response.json()
-        documents = result.get("documents", [])
-        if documents:
-            address_name = documents[0].get("address_name")
-            return address_name
-        else:
-            return None
-    else:
-        return None
+    # 장소 documents 가져옴
+    places = requests.get(url, params=params, headers=headers).json()['documents']
+
+    stores = []
+    road_address = []
+    ID = []
+
+    for place in places:
+        stores.append(place['place_name'])
+        road_address.append(place['road_address_name'])
+        ID.append(place['id'])
+    
+    ar = np.array([ID,stores, road_address]).T
+    df = pd.DataFrame(ar, columns = ['ID','stores','road_address'])
+    address = df['road_address'][:3].tolist()
+
+    print('장소 추정 단어 : ', region, "\n결과\n", df[['stores','road_address']][:3])
+
+    return address

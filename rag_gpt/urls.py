@@ -6,4 +6,5 @@ app_name = 'rag_gpt'
 urlpatterns = [
     path("ETRI/", views.etri_api, name='etri'),    # ETRI 무료 (긴급 구조 신고 상황 판단)
     path("GPT/", views.gpt_api, name='gpt'),     # GPT 유료 (긴급 구조 신고 상황 판단)
+    path("MAP/", views.get_address, name='map'), # 지도 API (장소 추정 단어로 도로명 주소 가져옴)
 ]
