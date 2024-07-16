@@ -53,7 +53,6 @@ class SignUpView(View):
                 email=email,
                 password=bcrypt.hashpw(password.encode("UTF-8"), bcrypt.gensalt()).decode("UTF-8"),
                 is_admin=False,  # 기본값으로 설정
-                is_active=False  # 이메일 인증 전까지 비활성화 상태
             )
 
             return JsonResponse({"message": "SUCCESS"}, status=200)
