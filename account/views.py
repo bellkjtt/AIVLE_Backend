@@ -40,11 +40,11 @@ class SignUpView(View):
 
             # 비밀번호 길이 유효성 검사
             if is_valid_password(password):
-                return JsonResponse({"message": "WRONG_FORM"}, status=400)
+                return JsonResponse({"errorCode": 0}, status=400)
             
             # 이메일 중복 확인
             if Account.objects.filter(email=email).exists():
-                return JsonResponse({"message": "EXISTS_EMAIL"}, status=400)
+                return JsonResponse({"errorCode": 1}, status=400)
 
             # 계정 생성
             user = Account.objects.create(
@@ -53,7 +53,6 @@ class SignUpView(View):
                 email=email,
                 password=bcrypt.hashpw(password.encode("UTF-8"), bcrypt.gensalt()).decode("UTF-8"),
                 is_admin=False,  # 기본값으로 설정
-                is_active=False  # 이메일 인증 전까지 비활성화 상태
             )
 
             return JsonResponse({"message": "SUCCESS"}, status=200)
@@ -73,7 +72,20 @@ class IDCheck(View):
         id = data["id"]
         
         if Account.objects.filter(id=id).exists():
-            return JsonResponse({"message": "EXISTS_ID"}, status=400)
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
+       
+# EMAIL 중복 확인 
+class EmailCheck(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data["email"]
+       
+        if Account.objects.filter(email=email).exists():
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
 
 # 로그인 뷰 생성
 class SignInView(View):
@@ -137,7 +149,7 @@ class SignUpMailView(View):
         mail_title = "회원가입 인증 코드"
         message_template = "인증 코드는 {code} 입니다."
         
-        return verify_email(email, mail_title, message_template)
+        return verify_email_signup(email, mail_title, message_template)
 
 # 회원가입 이메일 인증 코드 확인
 class EMailVerifyCodeView(View):
