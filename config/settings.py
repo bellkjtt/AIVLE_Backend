@@ -170,3 +170,11 @@ EMAIL_HOST_USER     = smtp_settings.EMAIL['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = smtp_settings.EMAIL['EMAIL_HOST_PASSWORD']
 DEFAULT_FROM_EMAIL  = smtp_settings.EMAIL['DEFAULT_FROM_EMAIL']
 SERVER_EMAIL        = smtp_settings.EMAIL['SERVER_EMAIL']
+
+# 서버 캐시 설정
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
