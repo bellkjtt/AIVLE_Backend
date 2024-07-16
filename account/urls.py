@@ -10,4 +10,8 @@ urlpatterns = [
     path('verifyid/', IDVerifyCodeView.as_view()), # 이메일 코드 확인
     path('verifypw/', PWVerifyCodeView.as_view()), # 이메일 코드 확인
     path('changepw/', ChangePWView.as_view()), # 이메일 코드 확인
+    path('idcheck/', IDCheck.as_view()), # 아이디 중복 확인
+    path('signupmail/', SignUpMailView.as_view()), # 회원가입 이메일 인증코드 발송
+    path('emailverify/', EMailVerifyCodeView.as_view()), # 회원가입 이메일 코드 확인
+    path('changepw/', ChangePWView.as_view()), # 이메일 코드 확인
 ]

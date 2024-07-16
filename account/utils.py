@@ -53,8 +53,34 @@ def verify_email(email, mail_title, message_template):
     except Account.DoesNotExist:
         return JsonResponse({"message": "EMAIL_NOT_FOUND"}, status=404)
 
+# 이메일 인증
+def verify_email_signup(email, mail_title, message_template):
+    if not email:
+        return JsonResponse({"valid": False}, status=400)
+
+    try:
+        # 이메일 형식 유효성 검사
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse({"valid": False}, status=400)
+
+
+    # 랜덤 인증 코드 생성
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    # 캐시에 인증 코드 저장 5분간 유효 (이메일 별)
+    cache.set(f'verify_code_{email}', code, 300)
+
+    # 이메일 발송
+    message_data = message_template.format(code=code)
+    email_message = EmailMessage(mail_title, message_data, to=[email])
+    email_message.send()
+
+    return JsonResponse({"valid": True}, status=200)
+
+
 # 이메일 코드 인증
-def verify_code(email, code, cred_type, id):
+def verify_code(email, code, cred_type, id='11'):
     if not email or not code:
         return JsonResponse({"message":"EMAIL_OR_CODE_REQUIRED"}, status=400)
     
