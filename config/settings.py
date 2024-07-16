@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "stt",
     "channels", # ASGI 설정
     'rest_framework',
-    'rag_gpt',
     'corsheaders', # CORS 헤더 설정
     'account',     # 회원 설정
     'api',         # 모델 api
@@ -92,7 +91,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "DB.sqlite3",
     }
 }
 
