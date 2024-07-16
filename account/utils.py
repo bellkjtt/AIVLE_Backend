@@ -87,24 +87,22 @@ def verify_code(email, code, cred_type, id='11'):
     cached_code = cache.get(f'verify_code_{email}')
     
     if cached_code and cached_code == code:
-        try:
-            user = Account.objects.get(email=email)
-            if cred_type == 'id':
-                return JsonResponse({"message": "SUCCESS", "id": user.id}, status=200)
-            elif cred_type == 'pw':
-                try:
-                    account = Account.objects.get(id=id, email=email) # 아이디와 이메일 매칭
-                    return JsonResponse({"message": "SUCCESS"}, status=200)
-                except Account.DoesNotExist:
-                    return JsonResponse({"valid": False}, status=400)
-            elif cred_type == 'sign':
+        if cred_type == 'sign':
+            return JsonResponse({"message": "SUCCESS"}, status=200)
+        else:
+            try:
                 user = Account.objects.get(email=email)
-                user.is_active = True
-                user.save()
-                return JsonResponse({"message": "SUCCESS"}, status=200)
+                if cred_type == 'id':
+                    return JsonResponse({"message": "SUCCESS", "id": user.id}, status=200)
+                elif cred_type == 'pw':
+                    try:
+                        account = Account.objects.get(id=id, email=email) # 아이디와 이메일 매칭
+                        return JsonResponse({"message": "SUCCESS"}, status=200)
+                    except Account.DoesNotExist:
+                        return JsonResponse({"valid": False}, status=400)
 
-        except Account.DoesNotExist:
-            return JsonResponse({"message": "EMAIL_NOT_FOUND"}, status=404)
+            except Account.DoesNotExist:
+                return JsonResponse({"message": "EMAIL_NOT_FOUND"}, status=404)
     else:
         return JsonResponse({"message": "INVALID_CODE"}, status=400)
     

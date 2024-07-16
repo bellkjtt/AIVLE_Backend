@@ -40,11 +40,11 @@ class SignUpView(View):
 
             # 비밀번호 길이 유효성 검사
             if is_valid_password(password):
-                return JsonResponse({"message": "WRONG_FORM"}, status=400)
+                return JsonResponse({"errorCode": 0}, status=400)
             
             # 이메일 중복 확인
             if Account.objects.filter(email=email).exists():
-                return JsonResponse({"message": "EXISTS_EMAIL"}, status=400)
+                return JsonResponse({"errorCode": 1}, status=400)
 
             # 계정 생성
             user = Account.objects.create(
@@ -73,7 +73,20 @@ class IDCheck(View):
         id = data["id"]
         
         if Account.objects.filter(id=id).exists():
-            return JsonResponse({"message": "EXISTS_ID"}, status=400)
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
+       
+# EMAIL 중복 확인 
+class EmailCheck(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data["email"]
+       
+        if Account.objects.filter(email=email).exists():
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
 
 # 로그인 뷰 생성
 class SignInView(View):
