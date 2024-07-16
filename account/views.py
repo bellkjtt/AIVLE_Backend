@@ -137,7 +137,7 @@ class SignUpMailView(View):
         mail_title = "회원가입 인증 코드"
         message_template = "인증 코드는 {code} 입니다."
         
-        return verify_email(email, mail_title, message_template)
+        return verify_email_signup(email, mail_title, message_template)
 
 # 회원가입 이메일 인증 코드 확인
 class EMailVerifyCodeView(View):
