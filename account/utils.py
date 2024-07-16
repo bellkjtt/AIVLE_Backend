@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from django.http import JsonResponse
 from .models import Account
-import bcrypt
+import bcrypt, jwt
 import re
 
 # 비밀번호 양식 추가
@@ -127,6 +127,37 @@ def change_pw(id, email, pw, pw_conf):
     user.save()
     
     return JsonResponse({"message":"PASSWORD_CHANGED"}, status = 200)
+
+
+from config.settings  import SECRET_KEY
+
+
+# JWT 검증
+def verify_jwt_token(request):
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return JsonResponse({"message": "Authorization header missing"}, status=400), None
+        
+        token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
+        payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=[SECRET_KEY['algorithm']])
+        user_id = payload.get('user')
+
+        # 사용자 객체를 가져옴
+        user = Account.objects.get(id=user_id)
+        return None, user
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"message": "Token expired"}, status=400), None
+    except jwt.InvalidTokenError:
+        return JsonResponse({"message": "Invalid token"}, status=400), None
+    except jwt.DecodeError:
+        return JsonResponse({"message": "Decoding error"}, status=400), None
+    except Account.DoesNotExist:
+        return JsonResponse({"message": "User not found"}, status=404), None
+    except Exception as e:
+        return JsonResponse({"message": f"An error occurred: {str(e)}"}, status=400), None
+
+
 
 
 # 이메일 인증 링크
