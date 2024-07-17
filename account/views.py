@@ -40,11 +40,11 @@ class SignUpView(View):
 
             # 비밀번호 길이 유효성 검사
             if is_valid_password(password):
-                return JsonResponse({"message": "WRONG_FORM"}, status=400)
+                return JsonResponse({"errorCode": 0}, status=400)
             
             # 이메일 중복 확인
             if Account.objects.filter(email=email).exists():
-                return JsonResponse({"message": "EXISTS_EMAIL"}, status=400)
+                return JsonResponse({"errorCode": 1}, status=400)
 
             # 계정 생성
             user = Account.objects.create(
@@ -53,7 +53,6 @@ class SignUpView(View):
                 email=email,
                 password=bcrypt.hashpw(password.encode("UTF-8"), bcrypt.gensalt()).decode("UTF-8"),
                 is_admin=False,  # 기본값으로 설정
-                is_active=False  # 이메일 인증 전까지 비활성화 상태
             )
 
             return JsonResponse({"message": "SUCCESS"}, status=200)
@@ -73,7 +72,20 @@ class IDCheck(View):
         id = data["id"]
         
         if Account.objects.filter(id=id).exists():
-            return JsonResponse({"message": "EXISTS_ID"}, status=400)
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
+       
+# EMAIL 중복 확인 
+class EmailCheck(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        email = data["email"]
+       
+        if Account.objects.filter(email=email).exists():
+            return JsonResponse({"valid": False}, status=200)
+        else:
+            return JsonResponse({"valid": True}, status=200)
 
 # 로그인 뷰 생성
 class SignInView(View):
@@ -143,7 +155,7 @@ class SignUpMailView(View):
         mail_title = "회원가입 인증 코드"
         message_template = "인증 코드는 {code} 입니다."
         
-        return verify_email(email, mail_title, message_template)
+        return verify_email_signup(email, mail_title, message_template)
 
 # 회원가입 이메일 인증 코드 확인
 class EMailVerifyCodeView(View):
@@ -189,8 +201,26 @@ class ChangePWView(View):
         return change_pw(id, email, password, password_confirm)
         
         
-        
-        
+# JWT 회원정보 전송
+@method_decorator(csrf_exempt, name='dispatch')
+class JWTuser(View):
+    def post(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=SECRET_KEY['algorithm'])
+            id = payload.get('user')
+            user = Account.objects.get(id=id)
+            
+            return JsonResponse({"id":user.id, "name":user.name, "email":user.email, "is_admin":user.is_admin}, status=200)
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"message":"Token_expired"}, status=400)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"message":"Invalid token"}, status=400)
+        except jwt.DecodeError:
+            return JsonResponse({"message":"Decoding_Error"}, status=400)
+        except Exception as e:
+            return JsonResponse({"message":f"An error occurred: {str(e)}"}, status=400)
+            
         
 # # 계정 활성화 뷰
 # class Activate(View):
