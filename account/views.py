@@ -121,12 +121,18 @@ class FindIDView(View):
 class FindPWView(View):
     def post(self, request):
         data = json.loads(request.body)
+        id = data.get('id')
         email = data.get('email')
         
-        mail_title = "비밀번호 변경 인증 코드"
-        message_template = "인증 코드는 {code} 입니다."
+        try:
+            user = Account.objects.get(id=id, email=email)
+            mail_title = "비밀번호 변경 인증 코드"
+            message_template = "인증 코드는 {code} 입니다."
+
+            return verify_email(email, mail_title, message_template)
         
-        return verify_email(email, mail_title, message_template)
+        except Account.DoesNotExist:
+            return JsonResponse({"message": "USER_NOT_FOUND"}, status=404)
 
 # 회원가입 이메일 인증 코드 전송 
 class SignUpMailView(View):
