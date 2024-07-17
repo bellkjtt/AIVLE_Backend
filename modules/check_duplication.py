@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from rag_gpt.models import EmergencyCalls
+from stt.models import EmergencyCalls
 
 
 # 이미 신고된 사건인지 중복 검사
