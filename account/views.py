@@ -197,26 +197,26 @@ class ChangePWView(View):
         return change_pw(id, email, password, password_confirm)
         
         
-# # JWT 회원정보 전송
-# # 데코레이터 화
-# @method_decorator(csrf_exempt, name='dispatch')
-# class JWTuser(View):
-#     def post(self, request):
-#         try:
-#             token = request.headers.get('Authorization')
-#             payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=SECRET_KEY['algorithm'])
-#             id = payload.get('user')
-#             user = Account.objects.get(id=id)
+# JWT 회원정보 전송
+# 데코레이터 화
+@method_decorator(csrf_exempt, name='dispatch')
+class JWTuser(View):
+    def post(self, request):
+        try:
+            token = request.headers.get('Authorization')
+            payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=SECRET_KEY['algorithm'])
+            id = payload.get('user')
+            user = Account.objects.get(id=id)
             
-#             return JsonResponse({"id":user.id, "name":user.name, "email":user.email, "is_admin":user.is_admin}, status=200)
-#         except jwt.ExpiredSignatureError:
-#             return JsonResponse({"message":"Token_expired"}, status=400)
-#         except jwt.InvalidTokenError:
-#             return JsonResponse({"message":"Invalid token"}, status=400)
-#         except jwt.DecodeError:
-#             return JsonResponse({"message":"Decoding_Error"}, status=400)
-#         except Exception as e:
-#             return JsonResponse({"message":f"An error occurred: {str(e)}"}, status=400)
+            return JsonResponse({"id":user.id, "name":user.name, "email":user.email, "is_admin":user.is_admin}, status=200)
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({"message":"Token_expired"}, status=400)
+        except jwt.InvalidTokenError:
+            return JsonResponse({"message":"Invalid token"}, status=400)
+        except jwt.DecodeError:
+            return JsonResponse({"message":"Decoding_Error"}, status=400)
+        except Exception as e:
+            return JsonResponse({"message":f"An error occurred: {str(e)}"}, status=400)
             
         
 # # 계정 활성화 뷰
