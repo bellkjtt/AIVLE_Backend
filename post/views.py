@@ -19,7 +19,7 @@ def get_base64_image(image_field):
 
 # 전체 공지사항 가져오기
 @method_decorator(csrf_exempt, name='dispatch')
-@method_decorator(verify_jwt_token, name='disspatch')
+@method_decorator(verify_jwt_token, name='dispatch')
 class PostList(View):
     def get(self, request):
         posts = Post.objects.all().order_by('-created_at')
@@ -28,7 +28,7 @@ class PostList(View):
 
 # 하나씩 공지사항 가져오기
 @method_decorator(csrf_exempt, name='dispatch')
-@method_decorator(verify_jwt_token, name='disspatch')
+@method_decorator(verify_jwt_token, name='dispatch')
 class PostDetailView(View):
     def get(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
@@ -39,10 +39,12 @@ class PostDetailView(View):
     
 # 공지사항 작성
 @method_decorator(csrf_exempt, name='dispatch')
-@method_decorator(verify_jwt_token, name='disspatch')
+@method_decorator(verify_jwt_token, name='dispatch')
 class PostCreateView(View):
     def post(self, request):
-        form = FileUploadForm(request.POST, request.FILES)
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
+        form = FileUploadForm(body_data, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.save()
@@ -57,8 +59,10 @@ class PostCreateView(View):
 @method_decorator(verify_jwt_token, name='dispatch')
 class PostEditView(View):
     def post(self, request, pk):
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
         post = get_object_or_404(Post, pk=pk)
-        form = FileUploadForm(request.POST, request.FILES, instance=post)
+        form = FileUploadForm(body_data, request.FILES, instance=post)
         if form.is_valid():
             post = form.save(commit=False)
             post.save()
