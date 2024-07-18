@@ -4,6 +4,9 @@ from django.conf.urls.static import static
 from config import settings
 
 urlpatterns = [
+   # path('signup/', .as_view()), # 
+   path('send/',send ), # 
+]
     path('postlist/', PostList.as_view()), # 전체 공지사항 가져오기
     path('postdetail/', PostDetailView.as_view()), # 공지사항 하나 가져오기
     path('postcreate/', PostCreateView.as_view()), # 공지사항 생성

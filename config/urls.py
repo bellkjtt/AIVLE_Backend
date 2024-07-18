@@ -2,7 +2,6 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from stt import views  
 
 urlpatterns = [
     path('admin/', admin.site.urls),                   # 관리자
