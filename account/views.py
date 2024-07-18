@@ -1,5 +1,5 @@
 from django.views import View
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 import json, jwt
 import bcrypt
 from .models import Account
@@ -11,10 +11,6 @@ from config.smtp_settings import EMAIL
 from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.shortcuts  import redirect
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding           import force_bytes, force_str
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
@@ -133,12 +129,18 @@ class FindIDView(View):
 class FindPWView(View):
     def post(self, request):
         data = json.loads(request.body)
+        id = data.get('id')
         email = data.get('email')
         
-        mail_title = "비밀번호 변경 인증 코드"
-        message_template = "인증 코드는 {code} 입니다."
+        try:
+            user = Account.objects.get(id=id, email=email)
+            mail_title = "비밀번호 변경 인증 코드"
+            message_template = "인증 코드는 {code} 입니다."
+
+            return verify_email(email, mail_title, message_template)
         
-        return verify_email(email, mail_title, message_template)
+        except Account.DoesNotExist:
+            return JsonResponse({"message": "USER_NOT_FOUND"}, status=404)
 
 # 회원가입 이메일 인증 코드 전송 
 class SignUpMailView(View):
@@ -195,25 +197,26 @@ class ChangePWView(View):
         return change_pw(id, email, password, password_confirm)
         
         
-# JWT 회원정보 전송
-@method_decorator(csrf_exempt, name='dispatch')
-class JWTuser(View):
-    def post(self, request):
-        try:
-            token = request.headers.get('Authorization')
-            payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=SECRET_KEY['algorithm'])
-            id = payload.get('user')
-            user = Account.objects.get(id=id)
+# # JWT 회원정보 전송
+# # 데코레이터 화
+# @method_decorator(csrf_exempt, name='dispatch')
+# class JWTuser(View):
+#     def post(self, request):
+#         try:
+#             token = request.headers.get('Authorization')
+#             payload = jwt.decode(token, SECRET_KEY['secret'], algorithms=SECRET_KEY['algorithm'])
+#             id = payload.get('user')
+#             user = Account.objects.get(id=id)
             
-            return JsonResponse({"id":user.id, "name":user.name, "email":user.email, "is_admin":user.is_admin}, status=200)
-        except jwt.ExpiredSignatureError:
-            return JsonResponse({"message":"Token_expired"}, status=400)
-        except jwt.InvalidTokenError:
-            return JsonResponse({"message":"Invalid token"}, status=400)
-        except jwt.DecodeError:
-            return JsonResponse({"message":"Decoding_Error"}, status=400)
-        except Exception as e:
-            return JsonResponse({"message":f"An error occurred: {str(e)}"}, status=400)
+#             return JsonResponse({"id":user.id, "name":user.name, "email":user.email, "is_admin":user.is_admin}, status=200)
+#         except jwt.ExpiredSignatureError:
+#             return JsonResponse({"message":"Token_expired"}, status=400)
+#         except jwt.InvalidTokenError:
+#             return JsonResponse({"message":"Invalid token"}, status=400)
+#         except jwt.DecodeError:
+#             return JsonResponse({"message":"Decoding_Error"}, status=400)
+#         except Exception as e:
+#             return JsonResponse({"message":f"An error occurred: {str(e)}"}, status=400)
             
         
 # # 계정 활성화 뷰
