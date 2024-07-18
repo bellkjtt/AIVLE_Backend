@@ -1,3 +1,78 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.core.serializers import serialize
+from django.views import View
+from django.http import JsonResponse
+from .models import Post
+import json, base64
+from config.decorators import verify_jwt_token
+from .forms import FileUploadForm
 
-# Create your views here.
+# 이미지 읽기
+def get_base64_image(image_field):
+    if not image_field:
+        return None
+    with image_field.open('rb') as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        return f'data:{image_field.file.content_type};base64,{encoded_string}'
+
+# 전체 공지사항 가져오기
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='disspatch')
+class PostList(View):
+    def get(self, request):
+        posts = Post.objects.all().order_by('-created_at')
+        posts_json = serialize('json', posts)
+        return JsonResponse(json.loads(posts_json), safe=False, status=200)
+
+# 하나씩 공지사항 가져오기
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='disspatch')
+class PostDetailView(View):
+    def get(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        post_json = serialize('json', [post])[1:-1]
+        post_data = json.loads(post_json)
+        post_data['fields']['file'] = get_base64_image(post.file)
+        return JsonResponse(post_data, safe=False)
+    
+# 공지사항 작성
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='disspatch')
+class PostCreateView(View):
+    def post(self, request):
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.save()
+            post_json = serialize('json', [post])[1:-1]
+            post_data = json.loads(post_json)
+            post_data['fields']['file'] = get_base64_image(post.file)
+            return JsonResponse(post_data, safe=False, status=200)
+        return JsonResponse(form.errors, status=400)
+
+# 공지사항 수정
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='dispatch')
+class PostEditView(View):
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        form = FileUploadForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.save()
+            post_json = serialize('json', [post])[1:-1]
+            post_data = json.loads(post_json)
+            post_data['fields']['file'] = get_base64_image(post.file)
+            return JsonResponse(post_data, safe=False, status=200)
+        return JsonResponse(form.errors, status=400)
+
+# 공지사항 삭제
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='dispatch')
+class PostDeleteView(View):
+    def delete(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        post.delete()
+        return JsonResponse({'status': 'success'}, status=200)
