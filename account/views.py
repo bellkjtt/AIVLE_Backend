@@ -3,15 +3,8 @@ from django.http import JsonResponse
 import json, jwt
 import bcrypt
 from .models import Account
-import re
-from config.token     import account_activation_token
-from config.text      import message
 from config.settings  import SECRET_KEY
-from config.smtp_settings import EMAIL
-from django.core.mail import EmailMessage
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.utils.encoding           import force_bytes, force_str
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
 from .utils import *
