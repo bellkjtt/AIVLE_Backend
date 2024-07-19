@@ -43,19 +43,19 @@ def audio_data(sid, data):
         print("view 호출")
         try:
             response = requests.post('http://127.0.0.1:8000/stt/process_audio/', files=files)
-            print(response.status_code)
-            if response.status_code == 200:
-                print(response.json())
-                response_data = response.json()
-                recognized_text = response_data.get('content', '요청을 받지 못했습니다. 다시 한번 말씀해주세요.')
-                message = f"{recognized_text}"
-                     
-            else:
-                message = 'Django 뷰 호출 실패'
         except Exception as e:
             print("Django 뷰 호출 중 예외 발생:", str(e))
             sio.emit('audio_text', 'Django 뷰 호출 실패', to=sid)
             return
+
+    print(response.content)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        recognized_text = response_data.get('message', 'No text recognized')
+        message = f"{recognized_text}"
+    else:
+        message = 'Django 뷰 호출 실패'
 
     print("응답 데이터:", message)
     sio.emit('audio_text', message, to=sid)
