@@ -56,6 +56,8 @@ def recognize_speech(file):
                     log.save()
         
                     processor.record = ''
+                    return result
+                
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -70,9 +72,11 @@ def recognize_speech(file):
                 log.save()
 
                 processor.record = ''
-                sio.emit('audio_text', result)
+                return result
+                # sio.emit('audio_text', result)
             else:
-                sio.emit('audio_text', result)
+                return result
+                # sio.emit('audio_text', result)
     else:
         print("Error:", response.text)
 
@@ -85,6 +89,7 @@ class ProcessAudioView(View):
         if not audio_file:
             return JsonResponse({"error": "No audio file provided."}, status=400)
 
-        recognize_speech(audio_file)
+        result_final = recognize_speech(audio_file)
+        # return JsonResponse({'content': result_final}, status=200)
         
-        return JsonResponse({"message": "Audio processed."}, status=200)
+        return JsonResponse({"content": str(result_final)}, status=200)
