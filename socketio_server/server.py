@@ -52,8 +52,8 @@ def audio_data(sid, data):
 
     if response.status_code == 200:
         response_data = response.json()
-        recognized_text = response_data.get('full_text', 'No text recognized')
-        message = f"Transcription: {recognized_text}"
+        recognized_text = response_data.get('message', 'No text recognized')
+        message = f"{recognized_text}"
     else:
         message = 'Django 뷰 호출 실패'
 
