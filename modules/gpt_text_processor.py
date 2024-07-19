@@ -3,6 +3,7 @@
 import sys
 import os
 import django
+import requests
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
@@ -62,8 +63,8 @@ class GPTProcessor:
                     unknown_li.append(key)
             
             except:
-                print('GPT API 오작동 (다시 한번 말씀해주세요)')
-                return 'GPT API 오작동 (다시 한번 말씀해주세요)'
+                # print('GPT API 오작동 (다시 한번 말씀해주세요)')
+                return 'GPT API 오작동 (다시 한번 말씀해주세요)', None
 
 
         ################# Debugging Test ################
@@ -101,7 +102,7 @@ class GPTProcessor:
             
             # 중복이 아닌 신고
             if not is_duplicate:
-                print('신고가 접수되었습니다.')
+                # print('신고가 접수되었습니다.')
                 
                 
                 # a = classifcation.classificate(self.record)
@@ -111,20 +112,20 @@ class GPTProcessor:
                 print('--------------------------------------------------')
                 print('[신고 내용 정제]')
                 print(context)
-                return '신고가 접수되었습니다.'
+                return '신고가 접수되었습니다.', context
             
             # 중복 신고
             else:
-                print('이미 접수된 신고입니다.')
+                # print('이미 접수된 신고입니다.')
                 # print(context)
-                return '이미 접수된 신고입니다.'
+                return '이미 접수된 신고입니다.', context
         
         # 더 많은 정보가 필요함
         else:
             print()
             print('신고 접수를 위해 추가로 필요한 정보 :', unknown_li)
            
-            return unknown_li
+            return unknown_li, None
 
 
 
