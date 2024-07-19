@@ -8,6 +8,7 @@ from modules.gpt_text_processor import GPTProcessor
 from django.shortcuts import render
 import socketio
 import eventlet
+from stt.models import CallLogs
 
 # 네이버 클로바 스피치 API 설정
 client_id = "etu7ckegx5"
@@ -34,20 +35,44 @@ def recognize_speech(file):
         text = response.json().get('text', 'No text recognized')
         if text != '':
             full_text += text + " "
-            result = processor.text_preprocessor(text)
-            if type(result) == 'list':
+            result, context = processor.text_preprocessor(text)
+            print(result)
+            if result == '신고가 접수되었습니다.':
+                prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
+                if prediction_response.status_code == 200:
+                    prediction2 = prediction_response.json().get('prediction2', None)
+
+                    log = CallLogs(
+                        category=context['사건 분류'],
+                        location=context['사건 발생 장소'],
+                        details=context['구체적인 현장 상태'],
+                        address_name=context['추정 주소'],
+                        place_name=context['추정 장소'],
+                        phone_number=context['추정 번호'],
+                        full_text=full_text,
+                        is_duplicate=False,
+                        emergency_type=prediction2
+                    )
+                    log.save()
+        
+                    processor.record = ''
+            elif result == '이미 접수된 신고입니다.':
+                log = CallLogs(
+                    category=context['사건 분류'],
+                    location=context['사건 발생 장소'],
+                    details=context['구체적인 현장 상태'],
+                    address_name=context['추정 주소'],
+                    place_name=context['추정 장소'],
+                    phone_number=context['추정 번호'],
+                    full_text=full_text,
+                    is_duplicate=True
+                )
+                log.save()
+
+                processor.record = ''
                 sio.emit('audio_text', result)
             else:
-                if result == '신고가 접수되었습니다.':
-                    response = requests.post('http://127.0.0.1:8000/api/predict/', {"full_text":full_text})
-                    full_text = ""
-                elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
-                    sio.emit('audio_text', result)
-                    full_text = ""
-                elif result == '이미 접수된 신고입니다.':
-                    full_text = ""
-                else:
-                    sio.emit('audio_text', result)
+                sio.emit('audio_text', result)
     else:
         print("Error:", response.text)
 
