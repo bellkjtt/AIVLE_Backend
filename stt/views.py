@@ -36,7 +36,6 @@ def recognize_speech(file):
         if text != '':
             full_text += text + " "
             result, context = processor.text_preprocessor(text)
-            print(result)
             if result == '신고가 접수되었습니다.':
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
                 if prediction_response.status_code == 200:
@@ -49,13 +48,14 @@ def recognize_speech(file):
                         address_name=context['추정 주소'],
                         place_name=context['추정 장소'],
                         phone_number=context['추정 번호'],
-                        full_text=full_text,
+                        full_text=processor.record,
                         is_duplicate=False,
                         emergency_type=prediction2
                     )
                     log.save()
         
                     processor.record = ''
+                    return result
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -64,15 +64,18 @@ def recognize_speech(file):
                     address_name=context['추정 주소'],
                     place_name=context['추정 장소'],
                     phone_number=context['추정 번호'],
-                    full_text=full_text,
+                    full_text=processor.record,
                     is_duplicate=True
                 )
                 log.save()
-
+                print(result)
                 processor.record = ''
-                sio.emit('audio_text', result)
+                return result
+            elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
+                processor.record = ''
+                return result
             else:
-                sio.emit('audio_text', result)
+                return result
     else:
         print("Error:", response.text)
 
@@ -85,6 +88,6 @@ class ProcessAudioView(View):
         if not audio_file:
             return JsonResponse({"error": "No audio file provided."}, status=400)
 
-        recognize_speech(audio_file)
+        result = recognize_speech(audio_file)
         
-        return JsonResponse({"message": "Audio processed."}, status=200)
+        return JsonResponse({"message": result}, status=200)

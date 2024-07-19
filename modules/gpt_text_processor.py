@@ -122,10 +122,10 @@ class GPTProcessor:
         
         # 더 많은 정보가 필요함
         else:
-            print()
-            print('신고 접수를 위해 추가로 필요한 정보 :', unknown_li)
-           
-            return unknown_li, None
+            # print()
+            # print('신고 접수를 위해 추가로 필요한 정보 :', unknown_li)
+            information = ' '.join(unknown_li)
+            return f'신고 접수를 위해 추가로 필요한 정보 : {information}', None
 
 
 
