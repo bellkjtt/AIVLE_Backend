@@ -4,4 +4,4 @@ from .models import Post
 class FileUploadForm(ModelForm):
     class Meta:
         model = Post
-        fields = ['id', 'title', 'file', 'content']
+        fields = ['id', 'user_id', 'title', 'file', 'content']
