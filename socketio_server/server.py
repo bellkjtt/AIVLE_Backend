@@ -1,5 +1,3 @@
-# socketio_server/server.py
-
 import socketio
 import eventlet
 import os
@@ -28,8 +26,39 @@ def disconnect(sid):
 # 클라이언트로부터 오디오 데이터 수신 시 실행되는 이벤트
 @sio.event
 def audio_data(sid, data):
-    response_data = ''
-    sio.emit('audio_text', response_data, to=sid)
+    print("파일 전송됨")
+    
+    # 현재 시간으로 파일 이름 생성
+    filename = datetime.now().strftime('%Y%m%d%H%M%S') + '.wav'
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    # 파일 저장
+    with open(file_path, 'wb') as f:
+        f.write(data)
+    print("파일 저장 완료:", file_path)
+
+    # 장고 STT 뷰 호출
+    with open(file_path, 'rb') as fp:
+        files = {'audio': fp}
+        print("view 호출")
+        try:
+            response = requests.post('http://127.0.0.1:8000/stt/process_audio/', files=files)
+        except Exception as e:
+            print("Django 뷰 호출 중 예외 발생:", str(e))
+            sio.emit('audio_text', 'Django 뷰 호출 실패', to=sid)
+            return
+
+    print(response.content)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        recognized_text = response_data.get('full_text', 'No text recognized')
+        message = f"Transcription: {recognized_text}"
+    else:
+        message = 'Django 뷰 호출 실패'
+
+    print("응답 데이터:", message)
+    sio.emit('audio_text', message, to=sid)
 
 # Socket.IO 서버 실행
 if __name__ == '__main__':

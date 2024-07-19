@@ -104,11 +104,11 @@ def classify_text(text, tokenizer, model, device, label_frequency=None):
 # APIView 정의
 class PredictView(APIView):
     def post(self, request, *args, **kwargs):
-        audio_file = request.FILES.get("audio")
-        if not audio_file:
-            return JsonResponse({"error": "No audio file provided"}, status=400)
+        text = request.POST.get("full_text", '')
+        # if not audio_file:
+        #     return JsonResponse({"error": "No audio file provided"}, status=400)
         
-        text = speech_to_text(audio_file)
+        # text = speech_to_text(audio_file)
         # text='숨을 쉬지 않아요.'  
         if not text:
             return JsonResponse({"error": "Failed to transcribe audio"}, status=500)
