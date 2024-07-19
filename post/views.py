@@ -90,6 +90,15 @@ class PostDataView(View):
     def post(self, request):
         return send(request)
 
+from django.db.models import Count
+@method_decorator(csrf_exempt, name='dispatch')
+class Disaster(View):
+    def get(self, request):
+        # 카테고리별 개수를 계산
+        disasters = CallLogs.objects.values('category').annotate(count=Count('category')).order_by('category')
+        # 결과를 JSON 형태로 반환
+        return JsonResponse(list(disasters), safe=False)
+
 # import socketio
 
 # Socket.IO 서버 인스턴스 생성
