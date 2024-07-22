@@ -39,15 +39,18 @@ def recognize_speech(file):
             if result == '신고가 접수되었습니다.':
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
                 if prediction_response.status_code == 200:
+                    prediction = prediction_response.json().get('prediction', None)
                     prediction2 = prediction_response.json().get('prediction2', None)
 
                     log = CallLogs(
-                        category=context['사건 분류'],
+                        category=prediction,
                         location=context['사건 발생 장소'],
                         details=context['구체적인 현장 상태'],
                         address_name=context['추정 주소'],
                         place_name=context['추정 장소'],
                         phone_number=context['추정 번호'],
+                        lat = context['위도'],
+                        lng = context['경도'],
                         full_text=processor.record,
                         is_duplicate=False,
                         emergency_type=prediction2
@@ -78,6 +81,26 @@ def recognize_speech(file):
                 return result
     else:
         print("Error:", response.text)
+
+from django.shortcuts import get_object_or_404
+
+def log_detail(request, pk):
+    log = get_object_or_404(CallLogs, pk=pk)
+    data = {
+        'category': log.category,
+        'location': log.location,
+        'details': log.details,
+        'address_name': log.address_name,
+        'place_name': log.place_name,
+        'phone_number': log.phone_number,
+        'full_text': log.full_text,
+        'is_duplicate': log.is_duplicate,
+        'emergency_type': log.emergency_type,
+        'audio_file' : log.audio_file,
+        'lat' : log.lat,
+        'lng' : log.lng,
+    }
+    return JsonResponse(data)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcessAudioView(View):
