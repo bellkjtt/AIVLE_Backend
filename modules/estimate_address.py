@@ -10,7 +10,7 @@ def get_address(location):
     url = 'https://dapi.kakao.com/v2/local/search/keyword.json'
     params = {'query': location, 'page': 1}
     headers = {"Authorization": "KakaoAK " + os.getenv('KAKAO_API_KEY')}
-
+    
     # 장소 documents 가져옴
     places = requests.get(url, params=params, headers=headers).json()['documents']
     address = places[0]
@@ -18,7 +18,11 @@ def get_address(location):
     context = {
         '추정 주소' : address['address_name'], 
         '추정 장소' : address['place_name'], 
-        '추정 번호' : address['phone']
+        '추정 번호' : address['phone'],
+        '위도' : address['y'],
+        '경도' : address['x'],
     }
 
     return context
+
+# get_address('마포구 마포대교')

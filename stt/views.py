@@ -41,8 +41,8 @@ def recognize_speech(file):
                 if prediction_response.status_code == 200:
                     prediction = prediction_response.json().get('prediction', None)
                     prediction2 = prediction_response.json().get('prediction2', None)
-
                     log = CallLogs(
+
                         category=prediction,
                         location=context['사건 발생 장소'],
                         details=context['구체적인 현장 상태'],
@@ -56,7 +56,7 @@ def recognize_speech(file):
                         emergency_type=prediction2
                     )
                     log.save()
-        
+
                     processor.record = ''
                     return result
             elif result == '이미 접수된 신고입니다.':
@@ -71,7 +71,7 @@ def recognize_speech(file):
                     is_duplicate=True
                 )
                 log.save()
-                print(result)
+
                 processor.record = ''
                 return result
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
