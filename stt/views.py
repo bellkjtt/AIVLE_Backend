@@ -8,7 +8,7 @@ from modules.gpt_text_processor import GPTProcessor
 from django.shortcuts import render
 import socketio
 import eventlet
-from stt.models import CallLogs,EmergencyCalls
+from stt.models import CallLogs
 
 # 네이버 클로바 스피치 API 설정
 client_id = "etu7ckegx5"
@@ -39,9 +39,11 @@ def recognize_speech(file):
             if result == '신고가 접수되었습니다.':
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
                 if prediction_response.status_code == 200:
+                    prediction = prediction_response.json().get('prediction', None)
                     prediction2 = prediction_response.json().get('prediction2', None)
                     log = CallLogs(
-                        category=context['사건 분류'],
+
+                        category=prediction,
                         location=context['사건 발생 장소'],
                         details=context['구체적인 현장 상태'],
                         address_name=context['추정 주소'],
@@ -54,9 +56,9 @@ def recognize_speech(file):
                         emergency_type=prediction2
                     )
                     log.save()
-                    print(processor.record,'위에꺼')
+
                     processor.record = ''
-                    return [result,context['위도'],context['경도'],context['추정 주소']]
+                    return result
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -69,19 +71,36 @@ def recognize_speech(file):
                     is_duplicate=True
                 )
                 log.save()
-                print(processor.record,'이미접수')
+
                 processor.record = ''
-                
                 return result
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
-                print(processor.record,'오작동')
-                # EmergencyCalls.objects.all().delete()
-                # CallLogs.objects.all().delete()
+                processor.record = ''
                 return result
             else:
                 return result
     else:
         print("Error:", response.text)
+
+from django.shortcuts import get_object_or_404
+
+def log_detail(request, pk):
+    log = get_object_or_404(CallLogs, pk=pk)
+    data = {
+        'category': log.category,
+        'location': log.location,
+        'details': log.details,
+        'address_name': log.address_name,
+        'place_name': log.place_name,
+        'phone_number': log.phone_number,
+        'full_text': log.full_text,
+        'is_duplicate': log.is_duplicate,
+        'emergency_type': log.emergency_type,
+        'audio_file' : log.audio_file,
+        'lat' : log.lat,
+        'lng' : log.lng,
+    }
+    return JsonResponse(data)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcessAudioView(View):
@@ -93,7 +112,5 @@ class ProcessAudioView(View):
             return JsonResponse({"error": "No audio file provided."}, status=400)
 
         result = recognize_speech(audio_file)
-        if type(result)==list:
-            return JsonResponse({"message": result[0], 'latitude': result[1], 'longtitue': result[2],'place':result[3]}, status=200)
-        else:
-            return JsonResponse({"message": result}, status=200)
+        
+        return JsonResponse({"message": result}, status=200)
