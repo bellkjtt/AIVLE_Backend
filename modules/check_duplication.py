@@ -32,6 +32,8 @@ def check_duplication(context):
         record.address_name = context['추정 주소']
         record.place_name = context['추정 장소']
         record.phone_number = context['추정 번호']
+        record.lat = context['위도']
+        record.lng = context['경도']
         record.save()
         
     return is_duplicate

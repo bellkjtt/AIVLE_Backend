@@ -12,6 +12,8 @@ class EmergencyCalls(models.Model):
     address_name = models.CharField(max_length=255, verbose_name="추정 주소", null=True)
     place_name = models.CharField(max_length=255, verbose_name="추정 장소", null=True)
     phone_number = models.CharField(max_length=20, verbose_name="전화번호", null=True)
+    lat = models.FloatField(verbose_name="위도", null=True)
+    lng = models.FloatField(verbose_name="경도", null=True)
     
     def __str__(self):
         return f"{self.date} - {self.category} at {self.location}"
@@ -37,6 +39,8 @@ class CallLogs(models.Model):
     is_duplicate = models.BooleanField(default=False, verbose_name="중복 신고 여부")
     emergency_type = models.CharField(max_length=15, choices=EMERGENCY_CHOICES, verbose_name="구급 여부")
     audio_file = models.FileField(upload_to='audio_files/', verbose_name="음성 파일", null=True)
+    lat = models.FloatField(verbose_name="위도", null=True)
+    lng = models.FloatField(verbose_name="경도", null=True)
 
     def __str__(self):
         return f"{self.date} - {self.category} at {self.location}"

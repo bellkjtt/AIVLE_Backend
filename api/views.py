@@ -127,4 +127,3 @@ class PredictView(APIView):
             "confidence2": float(conf2),
         })
         
-        
