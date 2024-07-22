@@ -9,7 +9,7 @@ from .models import Post
 import json, base64
 from config.decorators import verify_jwt_token
 from .forms import FileUploadForm
-
+from stt.models import CallLogs
 # 이미지 읽기
 def get_base64_image(image_field):
     if not image_field:
@@ -89,6 +89,26 @@ class PostDeleteView(View):
 class PostDataView(View):
     def post(self, request):
         return send(request)
+
+class LogDetailView(View):
+    def get(self, request, pk):
+        log = get_object_or_404(CallLogs, pk=pk)
+        data = {
+            'category': log.category,
+            'location': log.location,
+            'details': log.details,
+            'address_name': log.address_name,
+            'place_name': log.place_name,
+            'phone_number': log.phone_number,
+            'full_text': log.full_text,
+            'is_duplicate': log.is_duplicate,
+            'emergency_type': log.emergency_type,
+            'audio_file' : log.audio_file,
+            'lat' : log.lat,
+            'lng' : log.lng,
+        }
+        return JsonResponse(data)
+
 
 # import socketio
 

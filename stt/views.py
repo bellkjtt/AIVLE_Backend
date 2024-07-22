@@ -82,26 +82,6 @@ def recognize_speech(file):
     else:
         print("Error:", response.text)
 
-from django.shortcuts import get_object_or_404
-
-def log_detail(request, pk):
-    log = get_object_or_404(CallLogs, pk=pk)
-    data = {
-        'category': log.category,
-        'location': log.location,
-        'details': log.details,
-        'address_name': log.address_name,
-        'place_name': log.place_name,
-        'phone_number': log.phone_number,
-        'full_text': log.full_text,
-        'is_duplicate': log.is_duplicate,
-        'emergency_type': log.emergency_type,
-        'audio_file' : log.audio_file,
-        'lat' : log.lat,
-        'lng' : log.lng,
-    }
-    return JsonResponse(data)
-
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcessAudioView(View):
     def post(self, request, *args, **kwargs):
