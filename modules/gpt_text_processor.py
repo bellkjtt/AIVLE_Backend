@@ -87,6 +87,9 @@ class GPTProcessor:
             address_name = estimateAddress['추정 주소'] if estimateAddress else 'X'
             place_name = estimateAddress['추정 장소'] if estimateAddress else 'X'
             phone_number = estimateAddress['추정 번호'] if estimateAddress else 'X'
+            lat = estimateAddress['위도'] if estimateAddress else 'X'
+            lng = estimateAddress['경도'] if estimateAddress else 'X'
+            
 
             context = {
                 '사건 분류': category,
@@ -94,7 +97,9 @@ class GPTProcessor:
                 '구체적인 현장 상태': details,
                 '추정 주소': address_name,
                 '추정 장소': place_name,
-                '추정 번호': phone_number
+                '추정 번호': phone_number,
+                '위도' : lat,
+                '경도' : lng,
             }
             
             # 중복 신고 여부 확인
@@ -102,7 +107,7 @@ class GPTProcessor:
             
             # 중복이 아닌 신고
             if not is_duplicate:
-                # print('신고가 접수되었습니다.')
+                print('신고가 접수되었습니다.')
                 
                 
                 # a = classifcation.classificate(self.record)
@@ -123,9 +128,8 @@ class GPTProcessor:
         # 더 많은 정보가 필요함
         else:
             print()
-            print('신고 접수를 위해 추가로 필요한 정보 :', unknown_li)
-           
-            return unknown_li, None
+            print('신고 접수를 위해 추가로 필요한 정보 : '+ ', '.join(unknown_li))
+            return '신고 접수를 위해 추가로 필요한 정보 : '+ ', '.join(unknown_li), None
 
 
 

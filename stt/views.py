@@ -8,7 +8,7 @@ from modules.gpt_text_processor import GPTProcessor
 from django.shortcuts import render
 import socketio
 import eventlet
-from stt.models import CallLogs
+from stt.models import CallLogs,EmergencyCalls
 
 # 네이버 클로바 스피치 API 설정
 client_id = "etu7ckegx5"
@@ -40,7 +40,6 @@ def recognize_speech(file):
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
                 if prediction_response.status_code == 200:
                     prediction2 = prediction_response.json().get('prediction2', None)
-
                     log = CallLogs(
                         category=context['사건 분류'],
                         location=context['사건 발생 장소'],
@@ -48,14 +47,16 @@ def recognize_speech(file):
                         address_name=context['추정 주소'],
                         place_name=context['추정 장소'],
                         phone_number=context['추정 번호'],
+                        lat = context['위도'],
+                        lng = context['경도'],
                         full_text=processor.record,
                         is_duplicate=False,
                         emergency_type=prediction2
                     )
                     log.save()
-        
+                    print(processor.record,'위에꺼')
                     processor.record = ''
-                    return result
+                    return [result,context['위도'],context['경도'],context['추정 주소']]
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -68,11 +69,14 @@ def recognize_speech(file):
                     is_duplicate=True
                 )
                 log.save()
-                print(result)
+                print(processor.record,'이미접수')
                 processor.record = ''
+                
                 return result
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
-                processor.record = ''
+                print(processor.record,'오작동')
+                # EmergencyCalls.objects.all().delete()
+                # CallLogs.objects.all().delete()
                 return result
             else:
                 return result
@@ -89,5 +93,7 @@ class ProcessAudioView(View):
             return JsonResponse({"error": "No audio file provided."}, status=400)
 
         result = recognize_speech(audio_file)
-        
-        return JsonResponse({"message": result}, status=200)
+        if type(result)==list:
+            return JsonResponse({"message": result[0], 'latitude': result[1], 'longtitue': result[2],'place':result[3]}, status=200)
+        else:
+            return JsonResponse({"message": result}, status=200)

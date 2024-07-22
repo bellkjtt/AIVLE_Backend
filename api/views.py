@@ -127,9 +127,3 @@ class PredictView(APIView):
             "confidence2": float(conf2),
         })
         
-        
-from rest_framework.response import Response    
-class Disaster(APIView):
-    def get(self, request):
-        disasters = Result.objects.values_list('disaster_large', flat=True)
-        return Response(disasters)
