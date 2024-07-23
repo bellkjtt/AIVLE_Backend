@@ -8,7 +8,7 @@ import json
 def get_data():
     
     # 데이터 검색
-    data = CallLogs.objects.order_by('-date')
+    data = CallLogs.objects.filter(is_duplicate=0).order_by('-date')
     
     # 데이터를 JSON 형식으로 직렬화
     json_data = serialize('json', data)
