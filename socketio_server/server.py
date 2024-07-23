@@ -131,12 +131,15 @@ def audio_data(sid, data):
         if response.status_code == 200:
             response_data = response.json()
             recognized_text = response_data.get('message', 'No text recognized')
-            message = f"{recognized_text}"
+            log_id = response_data.get('log_id', None)
             latitude = response_data.get('latitude', 0)
             longtitue = response_data.get('longtitue', 0)
             place = response_data.get('place', None)
             
-            sio.emit('audio_text', message, to=sid)
+            sio.emit('audio_text', {
+                'message': recognized_text,
+                'log_id': log_id
+            }, to=sid)
             
             if latitude !=0 or longtitue!=0:
                 # 새 위치 정보를 리스트에 추가
@@ -149,9 +152,8 @@ def audio_data(sid, data):
                 })
         else:
             message = 'Django 뷰 호출 실패'
-            sio.emit('audio_text', message, to=sid)
+            sio.emit('audio_text', {'message': message}, to=sid)
             print('Django 뷰 호출 실패')
-
 @sio.event
 def request_initial_locations(sid):
     sio.emit('locations_update', all_locations, to=sid)
