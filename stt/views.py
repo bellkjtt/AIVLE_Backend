@@ -67,6 +67,8 @@ def recognize_speech(file):
                     address_name=context['추정 주소'],
                     place_name=context['추정 장소'],
                     phone_number=context['추정 번호'],
+                    lat = context['위도'],
+                    lng = context['경도'],
                     full_text=processor.record,
                     lat = context['위도'],
                     lng = context['경도'],
