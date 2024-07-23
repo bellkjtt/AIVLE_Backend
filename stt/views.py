@@ -58,10 +58,7 @@ def recognize_speech(file):
                     log.save()
 
                     processor.record = ''
-                    return {
-                        "message": result,
-                        "log_id": log.id,
-                    }
+                    return [result, log.id]
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -71,22 +68,21 @@ def recognize_speech(file):
                     place_name=context['추정 장소'],
                     phone_number=context['추정 번호'],
                     full_text=processor.record,
+                    lat = context['위도'],
+                    lng = context['경도'],
                     is_duplicate=True
                 )
                 log.save()
 
                 processor.record = ''
-                return {
-                        "message": result,
-                        "log_id": log.id,
-                    }
+                return result
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result
             else:
-                return {"message" : result}
+                return result
     else:
-        print("Error:", response.text)
+        print({"Error:" : response.text})
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ProcessAudioView(View):
@@ -98,5 +94,7 @@ class ProcessAudioView(View):
             return JsonResponse({"error": "No audio file provided."}, status=400)
 
         result = recognize_speech(audio_file)
-        
-        return JsonResponse(result, status=200)
+        if type(result) == list:
+            return JsonResponse({"message" : result[0], "log_id" : result[1]}, status=200)
+        return JsonResponse({"message" : result}, status=200)
+            
