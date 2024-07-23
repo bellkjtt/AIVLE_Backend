@@ -2,7 +2,7 @@ from django.urls import path
 from .views      import *
 from django.conf.urls.static import static
 from config import settings
-from .views import LogDetailView
+
 urlpatterns = [
    # path('signup/', .as_view()), # 
    path('send/',send ), # 
