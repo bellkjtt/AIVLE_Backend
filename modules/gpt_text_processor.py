@@ -40,7 +40,7 @@ class GPTProcessor:
         command = self.record + "위 긴급 구조 신고 전화 내용을 분석하여, '사건 분류', '사건 발생 장소', '구체적인 현장 상태'에 관해 각각 답변해줘. 만약 특정 답변을 생성하기에 정보가 부족하다면, 해당 정보는 X를 답변해줘. 예를들어 '여기 불났어요' 라는 신고가 발생하면, 사건 분류 : 화재, 사건 발생 장소 : X, 구체적인 현장 상태 : X 를 리턴해주면돼."
         client = OpenAI(api_key=self.api_key)
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": command}  # 음성 인식으로 변환된 텍스트 입력
@@ -90,7 +90,7 @@ class GPTProcessor:
             phone_number = estimateAddress['추정 번호'] if estimateAddress else 'X'
             lat = estimateAddress['위도'] if estimateAddress else 'X'
             lng = estimateAddress['경도'] if estimateAddress else 'X'
-
+            
             category = self.requirements['사건 분류']
             location = self.requirements['사건 발생 장소']
             details = self.requirements['구체적인 현장 상태']
@@ -132,7 +132,7 @@ class GPTProcessor:
         # 더 많은 정보가 필요함
         else:
             information = ' '.join(unknown_li)
-            return f'신고 접수를 위해 추가로 필요한 정보 : {information}', None
+            return f'{information}를 다시 한번 말해주세요.', None
 
 
 
