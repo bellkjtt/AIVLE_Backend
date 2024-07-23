@@ -70,8 +70,6 @@ def recognize_speech(file):
                     lat = context['위도'],
                     lng = context['경도'],
                     full_text=processor.record,
-                    lat = context['위도'],
-                    lng = context['경도'],
                     is_duplicate=True
                 )
                 log.save()
