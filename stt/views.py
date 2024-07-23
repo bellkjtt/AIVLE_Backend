@@ -59,7 +59,10 @@ def recognize_speech(file):
                     log.save()
 
                     processor.record = ''
-                    return result
+                    return {
+                        "message": result,
+                        "log_id": log.id,
+                    }
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
                     category=context['사건 분류'],
@@ -76,12 +79,15 @@ def recognize_speech(file):
                 log.save()
 
                 processor.record = ''
-                return result
+                return {
+                        "message": result,
+                        "log_id": log.id,
+                    }
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result
             else:
-                return result
+                return {"message" : result}
     else:
         print("Error:", response.text)
 
@@ -96,4 +102,4 @@ class ProcessAudioView(View):
 
         result = recognize_speech(audio_file)
         
-        return JsonResponse({"message": result}, status=200)
+        return JsonResponse(result, status=200)
