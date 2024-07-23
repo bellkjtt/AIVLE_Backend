@@ -115,7 +115,8 @@ from django.db.models.functions import TruncDate
 class DayLog(View):
     def get(self, request):
         # 날짜별 개수를 계산
-        disasters = CallLogs.objects.filter(is_duplicate=0).annotate(date=TruncDate('date')).values('date').annotate(count=Count('date')).order_by('date')
+        disasters = CallLogs.objects.filter(is_duplicate=0)
+        disasters = disasters.annotate(annotated_date=TruncDate('date')).values('annotated_date').annotate(count=Count('id')).order_by('annotated_date')
         # 결과를 JSON 형태로 반환
         return JsonResponse(list(disasters), safe=False)
 

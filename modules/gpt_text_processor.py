@@ -21,7 +21,7 @@ class GPTProcessor:
 
     # 인스턴스 선언 (OPENAI_API_KEY)
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")    # GPT API key
+        self.api_key = os.getenv("OPENAI_API_KEY")  # GPT API key
         self.record = ''                              # 새로운 신고 전화
         self.requirements = {'사건 분류': 'X', '사건 발생 장소': 'X', '구체적인 현장 상태': 'X'}
         
@@ -77,19 +77,23 @@ class GPTProcessor:
         
         # 모든 필수 정보를 알아냈다.
         if not unknown_li:
-            category = self.requirements['사건 분류']
-            location = self.requirements['사건 발생 장소']
-            details = self.requirements['구체적인 현장 상태']
+
 
             # 상세 위치(장소, 주소) 추정
             estimateAddress = get_address(self.requirements['사건 발생 장소'])
 
+            if estimateAddress == "Index_Error":
+                return "사건 발생 장소를 다시 한번 말해주세요.", None
+            
             address_name = estimateAddress['추정 주소'] if estimateAddress else 'X'
             place_name = estimateAddress['추정 장소'] if estimateAddress else 'X'
             phone_number = estimateAddress['추정 번호'] if estimateAddress else 'X'
             lat = estimateAddress['위도'] if estimateAddress else 'X'
             lng = estimateAddress['경도'] if estimateAddress else 'X'
-            
+
+            category = self.requirements['사건 분류']
+            location = self.requirements['사건 발생 장소']
+            details = self.requirements['구체적인 현장 상태']
 
             context = {
                 '사건 분류': category,
