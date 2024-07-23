@@ -9,7 +9,7 @@ from .models import Post
 import json, base64
 from config.decorators import verify_jwt_token
 from .forms import FileUploadForm
-from stt.models import CallLogs
+
 # 이미지 읽기
 def get_base64_image(image_field):
     if not image_field:
@@ -87,28 +87,37 @@ class PostDeleteView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(verify_jwt_token, name='dispatch')
 class PostDataView(View):
-    def post(self, request):
+    def get(self, request):
         return send(request)
 
-class LogDetailView(View):
+# 아이디에 해당하는 신고 로그 정보 가져오기
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(verify_jwt_token, name='dispatch')
+class PostLogView(View):
     def get(self, request, pk):
-        log = get_object_or_404(CallLogs, pk=pk)
-        data = {
-            'category': log.category,
-            'location': log.location,
-            'details': log.details,
-            'address_name': log.address_name,
-            'place_name': log.place_name,
-            'phone_number': log.phone_number,
-            'full_text': log.full_text,
-            'is_duplicate': log.is_duplicate,
-            'emergency_type': log.emergency_type,
-            'audio_file' : log.audio_file,
-            'lat' : log.lat,
-            'lng' : log.lng,
-        }
-        return JsonResponse(data)
+        post = get_object_or_404(CallLogs, pk=pk)
+        post_json = serialize('json', [post])[1:-1]
+        post_data = json.loads(post_json)
+        return JsonResponse(post_data, safe=False)
 
+from django.db.models import Count
+@method_decorator(csrf_exempt, name='dispatch')
+class Disaster(View):
+    def get(self, request):
+        # 카테고리별 개수를 계산
+        disasters = CallLogs.objects.values('category').annotate(count=Count('category')).order_by('category')
+        # 결과를 JSON 형태로 반환
+        return JsonResponse(list(disasters), safe=False)
+
+# 날짜별 신고 개수
+from django.db.models.functions import TruncDate
+@method_decorator(csrf_exempt, name='dispatch')
+class DayLog(View):
+    def get(self, request):
+        # 날짜별 개수를 계산
+        disasters = CallLogs.objects.filter(is_duplicate=0).annotate(date=TruncDate('date')).values('date').annotate(count=Count('date')).order_by('date')
+        # 결과를 JSON 형태로 반환
+        return JsonResponse(list(disasters), safe=False)
 
 # import socketio
 
