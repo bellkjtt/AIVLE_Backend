@@ -38,9 +38,9 @@ def recognize_speech(file):
             result, context = processor.text_preprocessor(text)
             if result == '신고가 접수되었습니다.':
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
+                prediction = prediction_response.json().get('prediction', None)
+                prediction2 = prediction_response.json().get('prediction2', None)
                 if prediction_response.status_code == 200:
-                    prediction = prediction_response.json().get('prediction', None)
-                    prediction2 = prediction_response.json().get('prediction2', None)
                     log = CallLogs(
 
                         category=prediction,
@@ -60,8 +60,9 @@ def recognize_speech(file):
                     processor.record = ''
                     return [result, log.id]
             elif result == '이미 접수된 신고입니다.':
+                
                 log = CallLogs(
-                    category=context['사건 분류'],
+                    category=prediction,
                     location=context['사건 발생 장소'],
                     details=context['구체적인 현장 상태'],
                     address_name=context['추정 주소'],
@@ -70,7 +71,8 @@ def recognize_speech(file):
                     lat = context['위도'],
                     lng = context['경도'],
                     full_text=processor.record,
-                    is_duplicate=True
+                    is_duplicate=True,
+                    prediction2 = prediction_response.json().get('prediction2', None),
                 )
                 log.save()
 
