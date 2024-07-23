@@ -53,7 +53,8 @@ def recognize_speech(file):
                         lng = context['경도'],
                         full_text=processor.record,
                         is_duplicate=False,
-                        emergency_type=prediction2
+                        emergency_type=prediction2,
+                        jurisdiction=prediction
                     )
                     log.save()
 
