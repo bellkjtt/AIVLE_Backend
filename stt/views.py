@@ -71,14 +71,12 @@ def recognize_speech(file):
                     lat = context['위도'],
                     lng = context['경도'],
                     full_text=processor.record,
-                    lat = context['위도'],
-                    lng = context['경도'],
                     is_duplicate=True
                 )
                 log.save()
 
                 processor.record = ''
-                return result
+                return [result, log.id]
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result
