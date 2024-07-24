@@ -85,29 +85,8 @@ def recognize_speech(file):
                     log.save()
 
                     processor.record = ''
-<<<<<<< HEAD
-                    return [result, log.id]
-            elif result == '이미 접수된 신고입니다.':
-                log = CallLogs(
-                    category=context['사건 분류'],
-                    location=context['사건 발생 장소'],
-                    details=context['구체적인 현장 상태'],
-                    address_name=context['추정 주소'],
-                    place_name=context['추정 장소'],
-                    phone_number=context['추정 번호'],
-                    lat = context['위도'],
-                    lng = context['경도'],
-                    full_text=processor.record,
-                    is_duplicate=True
-                )
-                log.save()
-
-                processor.record = ''
-                return [result, log.id]
-=======
                     result = '이미 접수된 신고입니다.'
-                    return result
->>>>>>> 084b97296b5b6c728f508add85767b9d2d858576
+                    return [result, log.id]  
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result
