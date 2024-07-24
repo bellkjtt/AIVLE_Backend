@@ -48,7 +48,7 @@ class CallLogs(models.Model):
     audio_file = models.FileField(upload_to='audio_files/', verbose_name="음성 파일", null=True)
     lat = models.FloatField(verbose_name="위도", null=True)
     lng = models.FloatField(verbose_name="경도", null=True)
-    jurisdiction = models.CharField(max_length=16, choices=JURISDICTION_CHOIES, verbose_name="관할서")
+    jurisdiction = models.CharField(max_length=16, choices=JURISDICTION_CHOIES, verbose_name="관할서",null=True)
 
     def __str__(self):
         return f"{self.date} - {self.category} at {self.location}"
