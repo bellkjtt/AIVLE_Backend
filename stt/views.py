@@ -86,7 +86,7 @@ def recognize_speech(file):
 
                     processor.record = ''
                     result = '이미 접수된 신고입니다.'
-                    return result
+                    return [result, log.id]  
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result

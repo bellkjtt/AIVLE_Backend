@@ -92,7 +92,9 @@ sio = socketio.Server(cors_allowed_origins='*')
 app = socketio.WSGIApp(sio)
 
 UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER_FULL = 'full_audio'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER_FULL, exist_ok=True)
 
 # 모든 위치 데이터를 저장할 리스트
 all_locations = []
@@ -162,6 +164,18 @@ def request_initial_locations(sid):
 @sio.event
 def request_locations(sid):
     sio.emit('locations_update', all_locations, to=sid)
+
+@sio.event
+def audio_full(sid, data):
+    print("파일 전송됨")
+    
+    filename = datetime.now().strftime('%Y%m%d%H%M%S') + '.wav'
+    file_path = os.path.join(UPLOAD_FOLDER_FULL, filename)
+    
+    with open(file_path, 'wb') as f:
+        f.write(data)
+    print("파일 저장 완료:", file_path)
+
 
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
