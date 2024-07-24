@@ -11,10 +11,10 @@ from stt.models import EmergencyCalls
 
 
 # 이미 신고된 사건인지 중복 검사
-def check_duplication(context):
+def check_duplication(context,prediction):
 
     # 중복 기준 : 사건 분류, 사건 발생 장소
-    category = context['사건 분류']
+    category = prediction
     address_name  = context['추정 주소']
     
     # 중복 여부 (Bool 타입)
@@ -26,7 +26,7 @@ def check_duplication(context):
     # 새로운 정보 DB 정제
     else:
         record = EmergencyCalls()
-        record.category = context['사건 분류']
+        record.category = prediction
         record.location = context['사건 발생 장소']
         record.details = context['구체적인 현장 상태']
         record.address_name = context['추정 주소']

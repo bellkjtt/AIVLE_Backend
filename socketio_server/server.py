@@ -138,10 +138,11 @@ def audio_data(sid, data):
             longtitue = response_data.get('longtitue', 0)
             place = response_data.get('place', None)
             
-            sio.emit('audio_text', {
-                'message': recognized_text,
-                'log_id': log_id
-            }, to=sid)
+            if recognized_text!=None:
+                sio.emit('audio_text', {
+                    'message': recognized_text,
+                    'log_id': log_id
+                }, to=sid)
             
             if latitude !=0 or longtitue!=0:
                 # 새 위치 정보를 리스트에 추가

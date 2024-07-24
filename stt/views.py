@@ -5,6 +5,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from modules.gpt_text_processor import GPTProcessor
+from modules.check_duplication import check_duplication   
 from django.shortcuts import render
 import socketio
 import eventlet
@@ -38,11 +39,37 @@ def recognize_speech(file):
             result, context = processor.text_preprocessor(text)
             if result == '신고가 접수되었습니다.':
                 prediction_response = requests.post('http://127.0.0.1:8000/api/predict/', data={"full_text": full_text})
-                if prediction_response.status_code == 200:
-                    prediction = prediction_response.json().get('prediction', None)
-                    prediction2 = prediction_response.json().get('prediction2', None)
+                prediction = prediction_response.json().get('prediction', None)
+                prediction2 = prediction_response.json().get('prediction2', None)
+            # 중복 신고 여부 확인
+                is_duplicate = check_duplication(context,prediction)
+            
+                # 중복이 아닌 신고
+                if not is_duplicate:
+                    print('신고가 접수되었습니다.')
                     log = CallLogs(
 
+                            category=prediction,
+                            location=context['사건 발생 장소'],
+                            details=context['구체적인 현장 상태'],
+                            address_name=context['추정 주소'],
+                            place_name=context['추정 장소'],
+                            phone_number=context['추정 번호'],
+                            lat = context['위도'],
+                            lng = context['경도'],
+                            full_text=processor.record,
+                            is_duplicate=False,
+                            emergency_type=prediction2,
+                        jurisdiction=prediction
+                        )
+                    log.save()
+
+                    processor.record = ''
+                    return [result, log.id]    
+                    
+                elif is_duplicate:
+                
+                    log = CallLogs(
                         category=prediction,
                         location=context['사건 발생 장소'],
                         details=context['구체적인 현장 상태'],
@@ -52,13 +79,13 @@ def recognize_speech(file):
                         lat = context['위도'],
                         lng = context['경도'],
                         full_text=processor.record,
-                        is_duplicate=False,
+                        is_duplicate=True,
                         emergency_type=prediction2,
-                        jurisdiction=prediction
                     )
                     log.save()
 
                     processor.record = ''
+<<<<<<< HEAD
                     return [result, log.id]
             elif result == '이미 접수된 신고입니다.':
                 log = CallLogs(
@@ -77,6 +104,10 @@ def recognize_speech(file):
 
                 processor.record = ''
                 return [result, log.id]
+=======
+                    result = '이미 접수된 신고입니다.'
+                    return result
+>>>>>>> 084b97296b5b6c728f508add85767b9d2d858576
             elif result == 'GPT API 오작동 (다시 한번 말씀해주세요)':
                 processor.record = ''
                 return result

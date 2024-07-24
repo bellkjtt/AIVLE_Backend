@@ -10,7 +10,7 @@ django.setup()
 
 from openai import OpenAI                                       # GPT API
 from modules.estimate_address import get_address                # 신고 위치(주소, 장소) 추정
-from modules.check_duplication import check_duplication         # 신고 위치(주소, 장소) 추정
+      # 신고 위치(주소, 장소) 추정
 # from modules.classification_model import ClassificationModel    # 신고 위치(주소, 장소) 추정
 
 # classifcation = ClassificationModel()
@@ -105,29 +105,8 @@ class GPTProcessor:
                 '위도' : lat,
                 '경도' : lng,
             }
+            return '신고가 접수되었습니다.', context
             
-            # 중복 신고 여부 확인
-            is_duplicate = check_duplication(context)
-            
-            # 중복이 아닌 신고
-            if not is_duplicate:
-                print('신고가 접수되었습니다.')
-                
-                
-                # a = classifcation.classificate(self.record)
-                
-                # print(a)
-                print()
-                print('--------------------------------------------------')
-                print('[신고 내용 정제]')
-                print(context)
-                return '신고가 접수되었습니다.', context
-            
-            # 중복 신고
-            else:
-                # print('이미 접수된 신고입니다.')
-                # print(context)
-                return '이미 접수된 신고입니다.', context
         
         # 더 많은 정보가 필요함
         else:
